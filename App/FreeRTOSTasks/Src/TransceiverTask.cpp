@@ -3,6 +3,7 @@
 using namespace AT86RF215;
 
 extern uint8_t button_flag;
+extern SPI_HandleTypeDef hspi4;
 
 AT86RF215::At86rf215 TransceiverTask::transceiver = AT86RF215::At86rf215(&hspi4, AT86RF215::AT86RF215Configuration());
 

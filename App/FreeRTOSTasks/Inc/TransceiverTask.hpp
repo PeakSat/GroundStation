@@ -1,14 +1,11 @@
 #pragma once
 #include "Task.hpp"
 #include "task.h"
-#include "main.h"
 #include "at86rf215.hpp"
-#include "stm32h7xx_hal.h"
 #include "queue.h"
 #include "etl/array.h"
 #include "etl/optional.h"
 
-extern SPI_HandleTypeDef hspi4;
 
 class TransceiverTask : public Task {
 public:

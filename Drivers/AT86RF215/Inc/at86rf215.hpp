@@ -2,11 +2,11 @@
 
 #include <at86rf215definitions.hpp>
 #include "at86rf215config.hpp"
-#include "stm32h7xx_hal.h"
 #include <utility>
 #include <cstdint>
 
 const uint16_t TIMEOUT = 1000;
+typedef struct __SPI_HandleTypeDef SPI_HandleTypeDef;
 
 namespace AT86RF215 {
 
