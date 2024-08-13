@@ -23,21 +23,28 @@
  * https://github.com/FreeRTOS
  *
  */
+/* Scheduler includes. */
+#include "FreeRTOS.h"
+#include "task.h"
 
-#ifndef __APP_MAIN_H__
-#define __APP_MAIN_H__
+/* App includes. */
+#include "app_main.h"
+#include "TransceiverTask.hpp"
+#include "cstdint"
 
-/**
- * @brief Main app entry point.
- */
-#ifdef __cplusplus
-extern "C" {
-#endif
+uint8_t button_flag = 0;
 
-void app_main(void);
+void app_main( void )
+{
+    transceiverTask.emplace();
 
-#ifdef __cplusplus
+    transceiverTask->createTask();
+
+    /* Start the scheduler. */
+    vTaskStartScheduler();
+
+    /* Should not get here. */
+    for( ;; );
 }
-#endif
+/*-----------------------------------------------------------*/
 
-#endif /* __APP_MAIN_H__ */

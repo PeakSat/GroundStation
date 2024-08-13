@@ -34,9 +34,6 @@ enable_language(C CXX ASM)
 project(${CMAKE_PROJECT_NAME})
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
-# Create an executable object type
-add_executable(${CMAKE_PROJECT_NAME})
-
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 # Add the AT Drivers
@@ -44,39 +41,40 @@ add_subdirectory(Drivers/AT86RF215)
 # Add the FreeRTOS
 add_subdirectory(Lib/FreeRTOS)
 #
-add_subdirectory(App/FreeRTOSTasks)
-#
 add_subdirectory(Lib/etl-20.38.17)
 #
 add_subdirectory(Lib/logger-main-c6abda2e)
 
+add_subdirectory(App/)
+
+# Create an executable object type
+add_executable(${CMAKE_PROJECT_NAME})
+
 # Link directories setup
-target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
+#target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths
-)
+#)
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user sources here
-        App/app_main.c
+     # Add user sources here
+        Core/Src/main.c
 )
 
 # Add include paths
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined include paths
-)
+#target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+#     Add user defined include paths
+#)
 
 # Add project symbols (macros)
-target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
+#target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined symbols
-)
+#)
 
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
         PRIVATE
         stm32cubemx
-        freertos_kernel
-        at86rf215
-        freertos_tasks
-    # Add user defined libraries
+        app_main
+#     Add user defined libraries
 )
