@@ -65,8 +65,9 @@ void Error_Handler(void);
 #define RF_SPI_MISO_GPIO_Port GPIOE
 #define RF_SPI_MOSI_Pin GPIO_PIN_6
 #define RF_SPI_MOSI_GPIO_Port GPIOE
-#define B1_Pin GPIO_PIN_13
-#define B1_GPIO_Port GPIOC
+#define USER_BTN_Pin GPIO_PIN_13
+#define USER_BTN_GPIO_Port GPIOC
+#define USER_BTN_EXTI_IRQn EXTI15_10_IRQn
 #define LD1_Pin GPIO_PIN_0
 #define LD1_GPIO_Port GPIOB
 #define LD3_Pin GPIO_PIN_14
@@ -77,6 +78,9 @@ void Error_Handler(void);
 #define STLINK_TX_GPIO_Port GPIOD
 #define USB_OTG_FS_PWR_EN_Pin GPIO_PIN_10
 #define USB_OTG_FS_PWR_EN_GPIO_Port GPIOD
+#define RF_IRQ_Pin GPIO_PIN_15
+#define RF_IRQ_GPIO_Port GPIOD
+#define RF_IRQ_EXTI_IRQn EXTI15_10_IRQn
 #define USB_OTG_FS_OVCR_Pin GPIO_PIN_7
 #define USB_OTG_FS_OVCR_GPIO_Port GPIOG
 #define LD2_Pin GPIO_PIN_1

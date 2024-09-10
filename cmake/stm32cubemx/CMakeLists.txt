@@ -21,6 +21,7 @@ target_include_directories(stm32cubemx INTERFACE
 )
 
 target_sources(stm32cubemx INTERFACE
+    ../../Core/Src/main.c
     ../../Core/Src/stm32h7xx_it.c
     ../../Core/Src/stm32h7xx_hal_msp.c
     ../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c
