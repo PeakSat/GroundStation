@@ -6,15 +6,18 @@
 /* App includes. */
 #include "app_main.h"
 #include "TransceiverTask.hpp"
-//#include "cstdint"
+#include "UARTGatekeeperTask.hpp"
+
 
 uint8_t button_flag = 0;
 
 void app_main( void )
 {
     transceiverTask.emplace();
+    uartGatekeeperTask.emplace();
 
     transceiverTask->createTask();
+    uartGatekeeperTask->createTask();
 
     /* Start the scheduler. */
     vTaskStartScheduler();
