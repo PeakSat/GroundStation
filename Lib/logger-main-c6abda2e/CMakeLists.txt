@@ -9,6 +9,8 @@ add_library(log_common STATIC)
 target_include_directories(log_common PUBLIC "inc/")
 target_sources(log_common PRIVATE "src/Logger.cpp")
 target_link_libraries(log_common PRIVATE etl::etl)
+target_link_libraries(log_common PRIVATE freertos_kernel)
+target_link_libraries(log_common PRIVATE freertos_tasks_headers)
 
 add_library(log_x86 STATIC)
 target_sources(log_x86 PRIVATE "src/Platform/x86/Logger.cpp")
