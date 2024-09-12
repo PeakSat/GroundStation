@@ -24,6 +24,7 @@ target_sources(stm32cubemx INTERFACE
     ../../Core/Src/main.c
     ../../Core/Src/stm32h7xx_it.c
     ../../Core/Src/stm32h7xx_hal_msp.c
+    ../../Core/Src/stm32h7xx_hal_timebase_tim.c
     ../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c
     ../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c
     ../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c
