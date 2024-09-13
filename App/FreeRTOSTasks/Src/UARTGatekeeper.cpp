@@ -10,7 +10,6 @@ UARTGatekeeperTask::UARTGatekeeperTask() : Task("UARTGatekeeperTask") {
 void UARTGatekeeperTask::execute() {
     etl::string<LOGGER_MAX_MESSAGE_SIZE> output;
     while (true) {
-
         xQueueReceive(this->xUartQueue, &output, portMAX_DELAY);
         HAL_UART_Transmit(&huart3, reinterpret_cast<const uint8_t *>(output.data()), output.size(), 500);
     }

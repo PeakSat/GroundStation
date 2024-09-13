@@ -6,6 +6,7 @@
 #define MaxLogNameSize 9
 #define MaxTickCountStringSize 10
 
+// allocate memory for the static variable
 etl::format_spec Logger::format;
 
 
@@ -50,11 +51,11 @@ void Logger::log(Logger::LogLevel level, etl::istring &message) {
     output.append(message.c_str());
     output.append("\n");
 
-    if (1) {
-        if (uartGatekeeperTask) {
+
+    if (uartGatekeeperTask) {
             uartGatekeeperTask->addToQueue(output);
-        }
     }
+
 
 }
 
@@ -67,6 +68,7 @@ Logger::LogEntry &Logger::LogEntry::operator<<(const std::string &value) {
     return *this;
 }
 
+
 Logger::LogEntry& Logger::LogEntry::operator<<(char* value) {
     message.append(value);
     return *this;
@@ -76,3 +78,5 @@ Logger::LogEntry& Logger::LogEntry::operator<<(const char* value) {
     message.append(value);
     return *this;
 }
+
+
