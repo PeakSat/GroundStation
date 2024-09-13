@@ -38,6 +38,9 @@
  * @note Always use the \ref LOG function and its associated utility macros to log. Do not directly use the Logger
  * class.
  */
+
+
+
 class Logger {
 public:
     /**

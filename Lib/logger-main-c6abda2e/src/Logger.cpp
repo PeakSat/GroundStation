@@ -6,6 +6,9 @@
 #define MaxLogNameSize 9
 #define MaxTickCountStringSize 10
 
+etl::format_spec Logger::format;
+
+
 void Logger::log(Logger::LogLevel level, etl::istring &message) {
     etl::string<MaxLogNameSize> levelString;
     etl::string<MaxTickCountStringSize> time;
