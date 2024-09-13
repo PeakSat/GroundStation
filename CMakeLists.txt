@@ -24,6 +24,8 @@ set(CMAKE_PROJECT_NAME GroundStation)
 # Include toolchain file
 include("cmake/gcc-arm-none-eabi.cmake")
 
+
+
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
@@ -46,6 +48,12 @@ add_subdirectory(Lib/etl-20.38.17)
 add_subdirectory(Lib/logger-main-c6abda2e)
 
 add_subdirectory(App/)
+
+
+
+
+#find_package(logger REQUIRED log_common log_x86)
+
 
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME})
@@ -76,5 +84,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         PRIVATE
         stm32cubemx
         app_main
+        log_common
 #     Add user defined libraries
 )
