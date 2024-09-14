@@ -19,7 +19,7 @@ uint8_t TransceiverTask::checkTheSPI() {
 
     else{
         spi_error = 1;
-        LOG_INFO << "SPI ERROR" ;
+        LOG_DEBUG << "SPI ERROR" ;
         transceiver.chip_reset(error);
     }
     return spi_error;
