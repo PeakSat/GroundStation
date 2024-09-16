@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.22)
 #
 
 # Setup compiler settings
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
@@ -23,7 +23,6 @@ set(CMAKE_PROJECT_NAME GroundStation)
 
 # Include toolchain file
 include("cmake/gcc-arm-none-eabi.cmake")
-
 
 
 # Enable compile command to ease indexing with e.g. clangd
@@ -49,43 +48,19 @@ add_subdirectory(Lib/logger-main-c6abda2e)
 
 add_subdirectory(App/)
 
-
-
-
-#find_package(logger REQUIRED log_common log_x86)
-
-
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME})
-
-# Link directories setup
-#target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined library search paths
-#)
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
      # Add user sources here
         Core/Src/main.c
 )
-add_compile_definitions(LOGLEVEL_TRACE)
-target_compile_definitions(log_common PUBLIC LOGLEVEL_TRACE)
-
-# Add include paths
-#target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-#     Add user defined include paths
-#)
-
-# Add project symbols (macros)
-#target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined symbols
-#)
 
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
         PRIVATE
         stm32cubemx
         app_main
-        log_common
 #     Add user defined libraries
 )

@@ -9,6 +9,13 @@
 // allocate memory for the static variable
 etl::format_spec Logger::format;
 
+Logger::LogEntry::LogEntry(LogLevel level) : level(level) {}
+
+Logger::LogEntry::~LogEntry() {
+    // When the destructor is called, the log message is fully "designed". Now we can finally "display" it to the user.
+    Logger::log(level, message);
+}
+
 
 void Logger::log(Logger::LogLevel level, etl::istring &message) {
     etl::string<MaxLogNameSize> levelString;
@@ -58,8 +65,23 @@ void Logger::log(Logger::LogLevel level, etl::istring &message) {
 
 
 }
-template<>
-void convertValueToString(String<LOGGER_MAX_MESSAGE_SIZE>& message, float value) {
-    etl::to_string(value, message, Logger::format.precision(Logger::MaxPrecision), true);
+
+
+// Reimplementation of the log function for C++ strings
+// This is kept in the Platform files, since we don't want to mess with std::strings in the microcontroller
+Logger::LogEntry &Logger::LogEntry::operator<<(const std::string &value) {
+    message.append(value.c_str());
+
+    return *this;
+}
+
+Logger::LogEntry& Logger::LogEntry::operator<<(char* value) {
+    message.append(value);
+    return *this;
+}
+
+Logger::LogEntry& Logger::LogEntry::operator<<(const char* value) {
+    message.append(value);
+    return *this;
 }
 
