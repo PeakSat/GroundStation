@@ -57,6 +57,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         Core/Src/main.c
 )
 
+target_compile_definitions(log_common PUBLIC LOGLEVEL_TRACE)
+
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
         PRIVATE
