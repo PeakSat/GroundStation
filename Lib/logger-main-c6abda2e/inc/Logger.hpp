@@ -30,6 +30,7 @@
 #define LOG_WARNING   (LOG<Logger::warning>())   ///< @see LOG @relates Logger
 #define LOG_ERROR     (LOG<Logger::error>())     ///< @see LOG @relates Logger
 #define LOG_EMERGENCY (LOG<Logger::emergency>()) ///< @see LOG @relates Logger
+
 /**
  * A logging class for ECSS Services that supports ETL's String and is lightweight enough to be used in embedded
  * development.
@@ -54,10 +55,6 @@ public:
      */
     static etl::format_spec format;
 
-    /**
-     * The maximum decimal places of the number that can be logged
-     */
-    inline static constexpr uint8_t MaxPrecision = 6;
     /**
      * Log levels supported by the logger. Each level represents a different severity of the logged Message,
      * and messages of lower severities can be filtered on top of more significant ones.
@@ -118,11 +115,18 @@ public:
          */
         template <class T>
         Logger::LogEntry& operator<<(const T value) {
-            convertValueToString(message, value);
+            etl::to_string(value, message, format, true);
+
             return *this;
         }
 
         Logger::LogEntry& operator<<(const std::string& value);
+
+//        template<>
+        Logger::LogEntry& operator<<(const char* value);
+
+//        template<>
+        Logger::LogEntry& operator<<(char* value);
     };
 
     /**
@@ -221,26 +225,3 @@ template <typename T>
 [[maybe_unused]] constexpr Logger::NoLogEntry operator<<(const Logger::NoLogEntry noLogEntry, T value) {
     return noLogEntry;
 }
-/**
- * Creating a message by converting the given value to a string and storing it
- * in the provided message buffer.
- *
- * @param T The type of the value to be converted to a string.
- * @param message The buffer storing the message. It should be an instance of
- *                `String<LOGGER_MAX_MESSAGE_SIZE>` defined by `LOGGER_MAX_MESSAGE_SIZE` -- see "Logger_Definitions.hpp"
- * @param value The value to be converted to a string and included in the message.
- */
-template<typename T>
-void convertValueToString(String<LOGGER_MAX_MESSAGE_SIZE>& message, T value) {
-    etl::to_string(value, message, Logger::format, true);
-}
-
-template<>
-void convertValueToString(String<LOGGER_MAX_MESSAGE_SIZE>& message, char* value);
-
-template<>
-void convertValueToString(String<LOGGER_MAX_MESSAGE_SIZE>& message, const char* value);
-
-template<>
-void convertValueToString(String<LOGGER_MAX_MESSAGE_SIZE>& message, float value);
-

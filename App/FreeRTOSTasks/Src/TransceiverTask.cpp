@@ -10,8 +10,13 @@ AT86RF215::At86rf215 TransceiverTask::transceiver = AT86RF215::At86rf215(&hspi4,
 uint8_t TransceiverTask::checkTheSPI() {
     uint8_t spi_error = 0;
     DevicePartNumber dpn = transceiver.get_part_number(error);
+    etl::string<LOGGER_MAX_MESSAGE_SIZE> output;
     if(dpn == DevicePartNumber::AT86RF215)
-        LOG_DEBUG << "SPI OK" ;
+    {
+        output = "SPI IS OK";
+        Logger::log(Logger::debug, output);
+    }
+
     else{
         spi_error = 1;
         LOG_DEBUG << "SPI ERROR" ;

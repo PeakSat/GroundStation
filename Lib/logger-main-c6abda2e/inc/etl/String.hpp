@@ -21,6 +21,7 @@
  *
  * @tparam MAX_SIZE The maximum size of the strings
  */
+
 template <const size_t MAX_SIZE>
 class String : public etl::string<MAX_SIZE> {
 public:
