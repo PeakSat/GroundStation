@@ -9,7 +9,6 @@ target_link_libraries(log_common PRIVATE "etl")
 target_link_libraries(log_common PRIVATE freertos_kernel)
 target_link_libraries(log_common PRIVATE freertos_tasks_headers)
 
-target_compile_definitions(log_common PUBLIC LOGLEVEL_TRACE)
 
 add_library(log_x86 STATIC)
 target_sources(log_x86 PRIVATE "src/Platform/x86/Logger.cpp")
