@@ -126,7 +126,11 @@ void TransceiverTask::txAnalogFrontEnd() {
     // PARAMP Config
     transceiver.spi_write_8(regtxcutc, reg | (static_cast<uint8_t>(AT86RF215::PowerAmplifierRampTime::RF_PARAMP32U) << 6), error);
     // LPFCUT Config
-    transceiver.spi_write_8(regtxcutc, reg | (static_cast<uint8_t>(AT86RF215::TransmitterCutOffFrequency::RF_FLC80KHZ)), error);
+    transceiver.spi_write_8(
+            regtxcutc,
+            (reg & 0xF0) | static_cast<uint8_t>(AT86RF215::TransmitterCutOffFrequency::RF_FLC80KHZ),
+            error
+    );
 }
 
 void TransceiverTask::modulationConfig(){
@@ -151,8 +155,8 @@ void TransceiverTask::setRFmode(uint8_t mode) {
 }
 
 void TransceiverTask::init_transceiver() {
-    setConfiguration(calculatePllChannelFrequency09(FrequencyUHF), calculatePllChannelNumber09(FrequencyUHF));
     transceiver.chip_reset(error);
+    setConfiguration(calculatePllChannelFrequency09(FrequencyUHF), calculatePllChannelNumber09(FrequencyUHF));
     transceiver.setup(error);
     txAnalogFrontEnd();
     txSRandTxFilter();
@@ -181,6 +185,83 @@ void TransceiverTask::execute() {
 
     uint16_t currentPacketLength = MaxPacketLength;
     PacketType packet = createRandomPacket(MaxPacketLength);
+    uint8_t read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_PC, error);
+    LOG_DEBUG << "BBC0_PC = " << read_reg ;
+    // RX DIGITAL FRONT END  //
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKC0, error);
+    LOG_DEBUG << "BBC0_FSKC0" << read_reg ;
+//    // RX Automatic Gain
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKC1, error);
+    LOG_DEBUG << "BBC0_FSKC1 = " << read_reg ;
+    // RX AGC and Receiver Gain
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKC2, error);
+    LOG_DEBUG << "BBC0_FSKC2 = " << read_reg ;
+//    // Current RSSI
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKC3, error);
+    LOG_DEBUG << "BBC0_FSKC3 = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKC4, error);
+    LOG_DEBUG << "BBC0_FSKC4 = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKPLL, error);
+    LOG_DEBUG << "BBC0_FSKPLL = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKSFD0L, error);
+    LOG_DEBUG << "BBC0_FSKSFD0L = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKSFD0H, error);
+    LOG_DEBUG << "BBC0_FSKSFD0H = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKSFD1L, error);
+    LOG_DEBUG << "BBC0_FSKSFD1L = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKSFD1H, error);
+    LOG_DEBUG << "BBC0_FSKSFD1H = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKPHRTX, error);
+    LOG_DEBUG << "BBC0_FSKPHRTX = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKPHRRX, error);
+    LOG_DEBUG << "BBC0_FSKPHRRX = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKRRXFLL, error);
+    LOG_DEBUG << "BBC0_FSKRRXFLL = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKRRXFLH, error);
+    LOG_DEBUG << "BBC0_FSKRRXFLH = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKRPC, error);
+    LOG_DEBUG << "BBC0_FSKRPC = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKRPCONT, error);
+    LOG_DEBUG << "BBC0_FSKRPCONT = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKRPCOFFT, error);
+    LOG_DEBUG << "BBC0_FSKRPCOFFT = " << read_reg ;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKDM, error);
+    LOG_DEBUG << "BBC0_FSKDM = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKPE0, error);
+    LOG_DEBUG << "BBC0_FSKPE0 = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKPE1, error);
+    LOG_DEBUG << "BBC0_FSKPE1 = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKPE2, error);
+    LOG_DEBUG << "BBC0_FSKPE2 = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::RF09_TXDFE,error);
+    LOG_DEBUG << "RF09_TXDFE = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::RF09_TXCUTC,error);
+    LOG_DEBUG << "RF09_TXCUTC = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::RF09_PAC,error);
+    LOG_DEBUG << "RF09_PAC = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::RF09_AUXS, error);
+    LOG_DEBUG << "RF09_AUXS = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::RF09_PADFE, error);
+    LOG_DEBUG << "RF09_PADFE = " << read_reg;
+    // receiver digital front end
+    LOG_DEBUG << "RECEIVER DIGITAL FRONT END " ;
+    read_reg = transceiver.spi_read_8(AT86RF215::RF09_RXBWC, error);
+    LOG_DEBUG << "RF09_RXBWC = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::RF09_RXDFE, error);
+    LOG_DEBUG << "RF09_RXDFE = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::RF09_AGCC, error);
+    LOG_DEBUG << "RF09_AGCC = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::RF09_AGCS, error);
+    LOG_DEBUG << "RF09_AGCS = " << read_reg;
+    int read_rssi = transceiver.int_spi_read_8(AT86RF215::RF09_RSSI,error);
+    LOG_DEBUG << "RF09_RSSI = " << read_rssi;
+    read_reg = transceiver.spi_read_8(AT86RF215::RF09_EDC, error);
+    LOG_DEBUG << "RF09_EDC = " << read_reg;
+    read_reg = transceiver.spi_read_8(AT86RF215::RF09_EDD, error);
+    LOG_DEBUG << "RF09_EDD = " << read_reg;
+    int read_edv = transceiver.int_spi_read_8(AT86RF215::RF09_EDV, error);
+    LOG_DEBUG << "RF09_EDV = " << read_edv;
 
 
     while(true) {

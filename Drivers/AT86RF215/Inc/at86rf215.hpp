@@ -60,6 +60,7 @@ namespace AT86RF215 {
          * @returns 		Returns the read byte
          */
         uint8_t spi_read_8(uint16_t address, Error &err);
+        int8_t  int_spi_read_8(uint16_t address, Error &err);
 
         /* Writes a byte to a specified address
          *

@@ -34,6 +34,23 @@ uint8_t At86rf215::spi_read_8(uint16_t address, Error &err) {
 
 	return response[2];
 }
+int8_t At86rf215::int_spi_read_8(uint16_t address, Error &err) {
+        uint8_t msg[2] = { static_cast<uint8_t>((address >> 8) & 0x7F), static_cast<uint8_t>(address & 0xFF) };
+        uint8_t response[3];
+        HAL_GPIO_WritePin(RF_SPI_SEL_GPIO_Port, RF_SPI_SEL_Pin, GPIO_PIN_RESET);
+        uint8_t hal_error = HAL_SPI_TransmitReceive(hspi, msg, reinterpret_cast<uint8_t *>(response), 3,
+                                                    TIMEOUT);
+
+        if (hal_error != HAL_OK) {
+            err = Error::FAILED_READING_FROM_REGISTER;
+            return 0;
+        }
+
+        HAL_GPIO_WritePin(RF_SPI_SEL_GPIO_Port, RF_SPI_SEL_Pin, GPIO_PIN_SET);
+        err = Error::NO_ERRORS;
+
+        return static_cast<int8_t>(response[2]);
+    }
 
 void At86rf215::spi_block_write_8(uint16_t address, uint16_t n, uint8_t *value,
 		Error &err) {
