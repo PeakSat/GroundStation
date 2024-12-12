@@ -1,13 +1,62 @@
-#ifndef INC_AT86RF215CONFIG_HPP_
-#define INC_AT86RF215CONFIG_HPP_
-
-
 #include "at86rf215definitions.hpp"
 #include <cstdint>
 
 namespace AT86RF215 {
+    struct RXConfig {
+        // RFn_RXBWC
+        ReceiverBandwidth receiverBandwidth09, receiverBandwidth24;
+        bool ifInversion09, ifInversion24;
+        bool ifShift09, ifShift24;
+        // RFn_RXDFE
+        RxRelativeCutoffFrequency rxRelativeCutoffFrequency09, rxRelativeCutoffFrequency24;
+        ReceiverSampleRate receiverSampleRate09, receiverSampleRate24;
+        // RFn_EDC
+        EnergyDetectionTimeBasis energyDetectionBasis09, energyDetectionBasis24;
+        EnergyDetectionMode energyDetectionMode09, energyDetectionMode24;
+        uint8_t energyDetectFactor09, energyDetectFactor24;
+        ReceiverEnergyDetectionAveragingDuration receiverEnergyDetectionAveragingDuration09, receiverEnergyDetectionAveragingDuration24;
+        // RFn_AGCC
+        bool agcInput09, agcInput24;
+        AverageTimeNumberSamples averageTimeNumberSamples09, averageTimeNumberSamples24;
+        bool agcEnabled09, agcEnabled24;
+        AutomaticGainTarget automaticGainControlTarget09, automaticGainControlTarget24;
+        uint8_t gainControlWord09, gainControlWord24;
+        // default rx config
+        static RXConfig DefaultRXConfig() {
+            return {
+                    // RFn_RXBWC
+                    .receiverBandwidth09 = ReceiverBandwidth::RF_BW160KHZ_IF250KHZ, .receiverBandwidth24 = ReceiverBandwidth::RF_BW160KHZ_IF250KHZ,
+                    .ifInversion09 = false, .ifInversion24 = false,
+                    .ifShift09 = false, .ifShift24 = false,
+                    // RFn_RXDFE
+                    .rxRelativeCutoffFrequency09 = RxRelativeCutoffFrequency::FCUT_0375, .rxRelativeCutoffFrequency24 = RxRelativeCutoffFrequency::FCUT_0375,
+                    .receiverSampleRate09 = ReceiverSampleRate::FS_400, .receiverSampleRate24 = ReceiverSampleRate::FS_400,
+                    // RFn_EDC
+                    .energyDetectionBasis09 = EnergyDetectionTimeBasis::RF_8MS, .energyDetectionBasis24 = EnergyDetectionTimeBasis::RF_8MS,
+                    .energyDetectionMode09 = EnergyDetectionMode::RF_EDAUTO,  .energyDetectionMode24 = EnergyDetectionMode::RF_EDAUTO,
+                    .energyDetectFactor09 = 0x10, .energyDetectFactor24 = 0x10,
+                    .receiverEnergyDetectionAveragingDuration09 = ReceiverEnergyDetectionAveragingDuration::REDAD_8U, .receiverEnergyDetectionAveragingDuration24 = ReceiverEnergyDetectionAveragingDuration::REDAD_8U,
+                    // RFn_AGCC
+                    .agcInput09 = false, .agcInput24 = false,
+                    .averageTimeNumberSamples09 = AverageTimeNumberSamples::AVGS_8, .averageTimeNumberSamples24 = AverageTimeNumberSamples::AVGS_8,
+                    .agcEnabled09 = true, .agcEnabled24 = false,
+                    // RF_AGCS
+                    .automaticGainControlTarget09 = AutomaticGainTarget::DB30, .automaticGainControlTarget24 = AutomaticGainTarget::DB30,
+            };
+        }
+        static RXConfig getDefaultRXConfig() {
+            return DefaultRXConfig();
+        }
+
+        // Setters for dynamic updates
+        void setReceiverBandwidth(ReceiverBandwidth bandwidth09, ReceiverBandwidth bandwidth24) {
+            receiverBandwidth09 = bandwidth09;
+            receiverBandwidth24 = bandwidth24;
+        }
+    };
 
     struct AT86RF215Configuration {
+
         ReceiverEnergyDetectionAveragingDuration receiverEnergyDetectionAveragingDuration =
                 ReceiverEnergyDetectionAveragingDuration::REDAD_8U;
         ReceiverBandwidth receiverBandwidth =
@@ -41,15 +90,6 @@ namespace AT86RF215 {
         CrystalTrim crystalTrim = CrystalTrim::TRIM_00;
         bool fastStartUp = false;
 
-        // RSSI
-        EnergyDetectionTimeBasis energyDetectionBasis09 =
-                EnergyDetectionTimeBasis::RF_8MS;
-        EnergyDetectionTimeBasis energyDetectionBasis24 =
-                EnergyDetectionTimeBasis::RF_8MS;
-        EnergyDetectionMode energyDetectionMode09 = EnergyDetectionMode::RF_EDAUTO;
-        EnergyDetectionMode energyDetectionMode24 = EnergyDetectionMode::RF_EDAUTO;
-        uint8_t energyDetectFactor09 = 0x10;
-        uint8_t energyDetectFactor24 = 0x10;
 
         // PLL
         uint16_t pllFrequency09 = 0x8D20;
@@ -106,31 +146,12 @@ namespace AT86RF215 {
         PowerAmplifierVoltageControl powerAmplifierVoltageControl24 =
                 PowerAmplifierVoltageControl::PAVC_2V4;
 
-        // RX Front-end
-        bool ifInversion09 = false;
-        bool ifInversion24 = false;
-        bool ifShift09 = false;
-        bool ifShift24 = false;
-        ReceiverBandwidth rxBandwidth09 = ReceiverBandwidth::RF_BW2000KHZ_IF2000KHZ;
-        ReceiverBandwidth rxBandwidth24 = ReceiverBandwidth::RF_BW2000KHZ_IF2000KHZ;
         RxRelativeCutoffFrequency rxRelativeCutoffFrequency09 =
                 RxRelativeCutoffFrequency::FCUT_025;
         RxRelativeCutoffFrequency rxRelativeCutoffFrequency24 =
                 RxRelativeCutoffFrequency::FCUT_025;
         ReceiverSampleRate receiverSampleRate09 = ReceiverSampleRate::FS_4000;
         ReceiverSampleRate receiverSampleRate24 = ReceiverSampleRate::FS_4000;
-        bool agcInput09 = false;
-        bool agcInput24 = false;
-        AverageTimeNumberSamples averageTimeNumberSamples09 =
-                AverageTimeNumberSamples::AVGS_8;
-        AverageTimeNumberSamples averageTimeNumberSamples24 =
-                AverageTimeNumberSamples::AVGS_8;
-        bool agcEnabled09 = true;
-        bool agcEnabled24 = true;
-        AutomaticGainTarget automaticGainControlTarget09 = AutomaticGainTarget::DB42;
-        AutomaticGainTarget automaticGainControlTarget24 = AutomaticGainTarget::DB42;
-        uint8_t gainControlWord09 = 0x17;
-        uint8_t gainControlWord24 = 0x17;
 
         // IQ Interface
         ExternalLoopback externalLoopback = ExternalLoopback::DISABLED;
@@ -198,5 +219,3 @@ namespace AT86RF215 {
     };
 
 }
-
-#endif /* INC_AT86RF215CONFIG_HPP_ */

@@ -34,16 +34,33 @@ namespace AT86RF215 {
 
     class At86rf215 {
     public:
+        AT86RF215Configuration config;
+        RXConfig rxConfig;
+        /// Flag indicating that a TX procedure is ongoing
+        bool tx_ongoing;
+        /// Flag indicating that an RX procedure is ongoing
+        bool rx_ongoing;
+        /// Flag indicating that the Clean Channel Assessment procedure is ongoing
+        bool cca_ongoing;
+        /// Flag for checking whether the AGC is locked
+        bool agc_held;
+        SPI_HandleTypeDef *hspi;
         /*
          * Initializer for AT86RF215
          *
          * @param hspi: pointer to the SPI_HandleTypeDef responsible for configuring the SPI.
          *
          */
-        At86rf215(SPI_HandleTypeDef *hspim, const AT86RF215Configuration&& config) :
-                hspi(hspim), config(std::move(config)), tx_ongoing(false), rx_ongoing(false),
-                agc_held(false) {
-        };
+        // Constructor with general config only
+        At86rf215(SPI_HandleTypeDef* hspim, const AT86RF215Configuration&& generalConfig)
+                : hspi(hspim),
+                  config(std::move(generalConfig)),  // Correctly moving the config
+                  tx_ongoing(false), rx_ongoing(false), agc_held(false)
+        {}
+
+        void setRXConfig(RXConfig&& newRXConfig) {
+            rxConfig = std::move(newRXConfig);  // Move the new config into rxConfig
+        }
 
         /* Writes a byte to a specified address
          *
@@ -1089,9 +1106,6 @@ namespace AT86RF215 {
         // TODO: Perhaps specify bw here as optional parameter or just control it via the config?
         void clear_channel_assessment(Transceiver transceiver, Error &err);
 
-
-        AT86RF215Configuration config;
-
         /**
          * Begins transmitting operations for Tx packet and automatically sets the `tx_ongoing` flag to inhibit conflicting
          * transmissions. The flag is automatically reset on a frame end interrupt.
@@ -1125,26 +1139,12 @@ namespace AT86RF215 {
         bool FrameBufferLevelIndication_flag, AGCRelease_flag, AGCHold_flag, TransmitterFrameEnd_flag, ReceiverExtendMatch_flag, ReceiverAddressMatch_flag, ReceiverFrameEnd_flag, ReceiverFrameStart_flag = false ;
 
 
-    private:
-
         /**
          * This is automatically called after triggering the packet reception
           * @param transceiver		Specifies the transceiver used
          * @param err				Pointer to raised error
          */
 
-
-        /// Flag indicating that a TX procedure is ongoing
-        bool tx_ongoing;
-        /// Flag indicating that an RX procedure is ongoing
-        bool rx_ongoing;
-        /// Flag indicating that the Clean Channel Assessment procedure is ongoing
-        bool cca_ongoing;
-        /// Flag for checking whether the AGC is locked
-        bool agc_held;
-
-
-        SPI_HandleTypeDef *hspi;
     };
 
 }

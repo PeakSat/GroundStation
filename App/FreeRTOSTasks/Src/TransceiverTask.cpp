@@ -5,7 +5,6 @@ using namespace AT86RF215;
 extern uint8_t button_flag;
 extern SPI_HandleTypeDef hspi4;
 
-AT86RF215::At86rf215 TransceiverTask::transceiver = AT86RF215::At86rf215(&hspi4, AT86RF215::AT86RF215Configuration());
 
 uint8_t TransceiverTask::checkTheSPI() {
     uint8_t spi_error = 0;
@@ -147,7 +146,7 @@ void TransceiverTask::setRFmode(uint8_t mode) {
         vTaskDelay(pdMS_TO_TICKS(10));
         transceiver.set_state(AT86RF215::RF09, State::RF_RX, error);
         if (transceiver.get_state(AT86RF215::RF09, error) == (AT86RF215::State::RF_RX))
-            LOG_DEBUG << " STATE = RX ";
+            LOG_DEBUG << "STATE = RX ";
     }
     else{
         transceiver.set_state(AT86RF215::RF09, State::RF_TX, error);
@@ -165,7 +164,7 @@ void TransceiverTask::init_transceiver() {
     receiverConfig(true);
 
     uint8_t reg = transceiver.spi_read_8(AT86RF215::BBC0_PC, error);
-    //  ENABLE TXSFCS (FCS autonomously calculated)
+    // ENABLE TXSFCS (FCS autonomously calculated)
     transceiver.spi_write_8(AT86RF215::BBC0_PC, reg | (1 << 4), error);
 }
 
@@ -189,16 +188,13 @@ void TransceiverTask::execute() {
     uint8_t read_reg;
     read_reg = transceiver.spi_read_8(AT86RF215::BBC0_PC, error);
     LOG_DEBUG << "BBC0_PC = " << read_reg ;
-    // RX DIGITAL FRONT END  //
     read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKC0, error);
     LOG_DEBUG << "BBC0_FSKC0" << read_reg ;
-//    // RX Automatic Gain
     read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKC1, error);
     LOG_DEBUG << "BBC0_FSKC1 = " << read_reg ;
     // RX AGC and Receiver Gain
     read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKC2, error);
     LOG_DEBUG << "BBC0_FSKC2 = " << read_reg ;
-//    // Current RSSI
     read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKC3, error);
     LOG_DEBUG << "BBC0_FSKC3 = " << read_reg ;
     read_reg = transceiver.spi_read_8(AT86RF215::BBC0_FSKC4, error);
@@ -242,13 +238,13 @@ void TransceiverTask::execute() {
     LOG_DEBUG << "RF09_TXCUTC = " << read_reg;
     read_reg = transceiver.spi_read_8(AT86RF215::RF09_PAC,error);
     LOG_DEBUG << "RF09_PAC = " << read_reg;
-    //
-    LOG_DEBUG << "AUXILARY SETTING";
+    // Auxilary Settings
+    LOG_DEBUG << "AUXILARY SETTINGS";
     read_reg = transceiver.spi_read_8(AT86RF215::RF09_AUXS, error);
     LOG_DEBUG << "RF09_AUXS = " << read_reg;
     read_reg = transceiver.spi_read_8(AT86RF215::RF09_PADFE, error);
     LOG_DEBUG << "RF09_PADFE = " << read_reg;
-    // receiver
+    // Receiver Regs
     LOG_DEBUG << "RECEIVER" ;
     read_reg = transceiver.spi_read_8(AT86RF215::RF09_RXBWC, error);
     LOG_DEBUG << "RF09_RXBWC = " << read_reg;
@@ -294,7 +290,7 @@ void TransceiverTask::execute() {
     LOG_DEBUG << "RF09_IRQS = " << read_reg;
     read_reg = transceiver.spi_read_8(AT86RF215::RF_CFG, error);
     LOG_DEBUG << "RF_CFG = " << read_reg;
-    //
+    // Phase Measurement Unit
     LOG_DEBUG << "Phase Measurement Unit" ;
     read_reg = transceiver.spi_read_8(AT86RF215::BBC0_PMUC, error);
     LOG_DEBUG << "BBC0_PMUC = " << read_reg;
@@ -306,7 +302,7 @@ void TransceiverTask::execute() {
     LOG_DEBUG << "BBC0_PMUI = " << read_reg;
     read_reg = transceiver.spi_read_8(AT86RF215::BBC0_PMUQ, error);
     LOG_DEBUG << "BBC0_PMUQ = " << read_reg;
-    //
+    // Timestamp Counter
     LOG_DEBUG << "Timestamp Counter" ;
     read_reg = transceiver.spi_read_8(AT86RF215::BBC0_CNTC, error);
     LOG_DEBUG << "BBC0_CNTC = " << read_reg;
@@ -318,13 +314,12 @@ void TransceiverTask::execute() {
     LOG_DEBUG << "BBC0_CNT2 = " << read_reg;
     read_reg = transceiver.spi_read_8(AT86RF215::BBC0_CNT3, error);
     LOG_DEBUG << "BBC0_CNT3 = " << read_reg;
-    //
+    // State Machine
     LOG_DEBUG << "STATE MACHINE REGS";
     read_reg = transceiver.spi_read_8(AT86RF215::RF09_STATE,error);
     LOG_DEBUG << "Transceiver State = " << read_reg;
     read_reg = transceiver.spi_read_8(AT86RF215::RF09_CMD, error);
     LOG_DEBUG << "Transceiver command = " << read_reg;
-
 
     while(true) {
         if(button_flag)

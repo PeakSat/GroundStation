@@ -1,7 +1,12 @@
 #include "at86rf215.hpp"
 #include "main.h"
+//#include "FreeRTOS.h"
+//#include "task.h"
+#include "Task.hpp"
+#include "RF_TXTask.hpp"
+#include "RF_RXTask.hpp"
 
-namespace AT86RF215 {
+namespace AT86RF215{
 
 void At86rf215::spi_write_8(uint16_t address, uint8_t value, Error &err) {
 	uint8_t msg[3] = { static_cast<uint8_t>(0x80 | ((address >> 8) & 0x7F)), static_cast<uint8_t>(address & 0xFF), value };
@@ -70,7 +75,7 @@ void At86rf215::spi_block_write_8(uint16_t address, uint16_t n, uint8_t *value,
 
 void At86rf215::spi_write_16(uint16_t address, uint16_t value, Error &err) {
 	uint8_t val[] = { static_cast<uint8_t>((value & 0xFF00) >> 8), static_cast<uint8_t>(value & 0x00FF) };
-	//spi_block_write_8(address, 2, val);
+	// spi_block_write_8(address, 2, val);
 }
 
 uint8_t* At86rf215::spi_block_read_8(uint16_t address, uint8_t n,
@@ -1676,13 +1681,13 @@ State At86rf215::get_state(Transceiver transceiver, Error &err) {
         // Set IRQ masks
         setup_irq_mask(Transceiver::RF09, config.iqIfSynchronizationFailure09, config.trasnceiverError09,
                        config.batteryLow09, config.energyDetectionCompletion09, config.transceiverReady09,
-                       config.wakeup09, config.frameBufferLevelIndication09, config.agcEnabled09, config.agcRelease09,
+                       config.wakeup09, config.frameBufferLevelIndication09, rxConfig.agcEnabled09, config.agcRelease09,
                        config.agcHold09, config.transmitterFrameEnd09, config.receiverExtendedMatch09,
                        config.receiverAddressMatch09, config.receiverFrameEnd09, config.receiverFrameStart09, err);
 
         setup_irq_mask(Transceiver::RF24, config.iqIfSynchronizationFailure24, config.trasnceiverError24,
                        config.batteryLow24, config.energyDetectionCompletion24, config.transceiverReady24,
-                       config.wakeup24, config.frameBufferLevelIndication24, config.agcEnabled24, config.agcRelease24,
+                       config.wakeup24, config.frameBufferLevelIndication24, rxConfig.agcEnabled24, config.agcRelease24,
                        config.agcHold24, config.transmitterFrameEnd24, config.receiverExtendedMatch24,
                        config.receiverAddressMatch24, config.receiverFrameEnd24, config.receiverFrameStart24, err);
 
@@ -1745,19 +1750,19 @@ State At86rf215::get_state(Transceiver transceiver, Error &err) {
         }
 
         // Set up RX front-end
-        setup_rx_frontend(Transceiver::RF09, config.ifInversion09, config.ifShift09,
-                          config.rxBandwidth09, config.rxRelativeCutoffFrequency09,
-                          config.receiverSampleRate09, config.agcInput09,
-                          config.averageTimeNumberSamples09, config.agcEnabled09,
-                          config.automaticGainControlTarget09, config.gainControlWord09, err);
+        setup_rx_frontend(Transceiver::RF09, rxConfig.ifInversion09, rxConfig.ifShift09,
+                          rxConfig.receiverBandwidth09, rxConfig.rxRelativeCutoffFrequency09,
+                          rxConfig.receiverSampleRate09, rxConfig.agcInput09,
+                          rxConfig.averageTimeNumberSamples09, rxConfig.agcEnabled09,
+                          rxConfig.automaticGainControlTarget09, rxConfig.gainControlWord09, err);
         if (err != Error::NO_ERRORS) {
             return;
         }
-        setup_rx_frontend(Transceiver::RF24, config.ifInversion24, config.ifShift24,
-                          config.rxBandwidth24, config.rxRelativeCutoffFrequency24,
-                          config.receiverSampleRate24, config.agcInput24,
-                          config.averageTimeNumberSamples24, config.agcEnabled24,
-                          config.automaticGainControlTarget24, config.gainControlWord24, err);
+        setup_rx_frontend(Transceiver::RF24, rxConfig.ifInversion24, rxConfig.ifShift24,
+                          rxConfig.receiverBandwidth24, rxConfig.rxRelativeCutoffFrequency24,
+                          config.receiverSampleRate24, rxConfig.agcInput24,
+                          rxConfig.averageTimeNumberSamples24, rxConfig.agcEnabled24,
+                          rxConfig.automaticGainControlTarget24, rxConfig.gainControlWord24, err);
         if (err != Error::NO_ERRORS) {
             return;
         }
@@ -1772,10 +1777,10 @@ State At86rf215::get_state(Transceiver transceiver, Error &err) {
         }
 
         // Set up RSSI
-        setup_rssi(Transceiver::RF09, config.energyDetectionMode09,
-                   config.energyDetectFactor09, config.energyDetectionBasis09, err);
-        setup_rssi(Transceiver::RF24, config.energyDetectionMode24,
-                   config.energyDetectFactor24, config.energyDetectionBasis24, err);
+        setup_rssi(Transceiver::RF09, rxConfig.energyDetectionMode09,
+                   rxConfig.energyDetectFactor09, rxConfig.energyDetectionBasis09, err);
+        setup_rssi(Transceiver::RF24, rxConfig.energyDetectionMode24,
+                   rxConfig.energyDetectFactor24, rxConfig.energyDetectionBasis24, err);
 
         if (err != Error::NO_ERRORS) {
             return;
@@ -1812,6 +1817,7 @@ State At86rf215::get_state(Transceiver transceiver, Error &err) {
         if ((irq & InterruptMask::IFSynchronization) != 0) {
             // I/Q IF Synchronization Failure handling
             IFSynchronization_flag = true;
+            xTaskNotify(rf_txtask->taskHandle, 0, eSetBits);
         }
         if ((irq & InterruptMask::TransceiverError) != 0) {
             // Transceiver Error handling
@@ -1951,5 +1957,6 @@ State At86rf215::get_state(Transceiver transceiver, Error &err) {
         }
 
     }
+
 
 }
