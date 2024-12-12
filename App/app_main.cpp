@@ -3,12 +3,12 @@
 #include "main.h"
 #include "RF_RXTask.hpp"
 
-
 /* App includes. */
 #include "app_main.h"
 #include "TransceiverTask.hpp"
 #include "UARTGatekeeperTask.hpp"
 #include "RF_TXTask.hpp"
+#include "RF_RXTask.hpp"
 
 
 uint8_t button_flag = 0;
@@ -18,10 +18,12 @@ void app_main( void )
 //    transceiverTask.emplace();
     uartGatekeeperTask.emplace();
     rf_rxtask.emplace();
+    rf_txtask.emplace();
 
 //    transceiverTask->createTask();
     uartGatekeeperTask->createTask();
     rf_rxtask->createTask();
+    rf_txtask->createTask();
 
     /* Start the scheduler. */
     vTaskStartScheduler();

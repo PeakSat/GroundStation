@@ -36,6 +36,7 @@ namespace AT86RF215 {
     public:
         AT86RF215Configuration config;
         RXConfig rxConfig;
+        TXConfig txConfig;
         /// Flag indicating that a TX procedure is ongoing
         bool tx_ongoing;
         /// Flag indicating that an RX procedure is ongoing
@@ -60,6 +61,9 @@ namespace AT86RF215 {
 
         void setRXConfig(RXConfig&& newRXConfig) {
             rxConfig = std::move(newRXConfig);  // Move the new config into rxConfig
+        }
+        void setTXConfig(TXConfig&& newTXConfig) {
+            txConfig = std::move(newTXConfig);  // Move the new config into rxConfig
         }
 
         /* Writes a byte to a specified address

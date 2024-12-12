@@ -21,7 +21,6 @@ public:
     uint8_t calculatePllChannelNumber09(uint32_t frequency);
     uint16_t calculatePllChannelFrequency09(uint32_t frequency);
     uint8_t checkTheSPI();
-    void updateReceiverBandwidth(ReceiverBandwidth bandwidth09, ReceiverBandwidth bandwidth24);
     void createTask() {
         xTaskCreateStatic(vClassTask < RF_RXTask > , this->TaskName,
                           RF_RXTask::TaskStackDepth, this, tskIDLE_PRIORITY + 1,

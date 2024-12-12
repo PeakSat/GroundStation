@@ -37,11 +37,6 @@ uint8_t RF_RXTask::checkTheSPI() {
     return spi_error;
 }
 
-void RF_RXTask::updateReceiverBandwidth(ReceiverBandwidth bandwidth09, ReceiverBandwidth bandwidth24) {
-    transceiver.rxConfig.receiverBandwidth09 = bandwidth09;
-    transceiver.rxConfig.receiverBandwidth24 = bandwidth24;
-}
-
 void RF_RXTask::execute() {
 
    transceiver.chip_reset(error);
@@ -73,8 +68,6 @@ void RF_RXTask::execute() {
     LOG_DEBUG << "RF09_EDV = " << read_edv;
     LOG_DEBUG << "DELAY";
     vTaskDelay(3000);
-    updateReceiverBandwidth(ReceiverBandwidth::RF_BW800KHZ_IF1000KHZ, ReceiverBandwidth::RF_BW630KHZ_IF1000KHZ);
-    transceiver.setup(error);
 
 }
 

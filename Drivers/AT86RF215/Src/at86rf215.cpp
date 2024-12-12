@@ -1726,22 +1726,22 @@ State At86rf215::get_state(Transceiver transceiver, Error &err) {
         }
 
         // Set TX front-end
-        setup_tx_frontend(Transceiver::RF09, config.powerAmplifierRampTime09,
-                          config.transmitterCutOffFrequency09,
-                          config.txRelativeCutoffFrequency09, config.directModulation09,
-                          config.transceiverSampleRate09,
-                          config.powerAmplifierCurrentControl09, config.txOutPower09,
+        setup_tx_frontend(Transceiver::RF09, txConfig.powerAmplifierRampTime09,
+                          txConfig.transmitterCutOffFrequency09,
+                          txConfig.txRelativeCutoffFrequency09, txConfig.directModulation09,
+                          txConfig.transceiverSampleRate09,
+                          txConfig.powerAmplifierCurrentControl09, txConfig.txOutPower09,
                           config.externalLNABypass09, config.automaticGainControlMAP09,
                           config.automaticVoltageExternal09, config.analogVoltageEnable09,
                           config.powerAmplifierVoltageControl09, err);
         if (err != Error::NO_ERRORS) {
             return;
         }
-        setup_tx_frontend(Transceiver::RF24, config.powerAmplifierRampTime24,
-                          config.transmitterCutOffFrequency24,
-                          config.txRelativeCutoffFrequency24, config.directModulation24,
-                          config.transceiverSampleRate24,
-                          config.powerAmplifierCurrentControl24, config.txOutPower24,
+        setup_tx_frontend(Transceiver::RF24, txConfig.powerAmplifierRampTime24,
+                          txConfig.transmitterCutOffFrequency24,
+                          txConfig.txRelativeCutoffFrequency24, txConfig.directModulation24,
+                          txConfig.transceiverSampleRate24,
+                          txConfig.powerAmplifierCurrentControl24, txConfig.txOutPower24,
                           config.externalLNABypass24, config.automaticGainControlMAP24,
                           config.automaticVoltageExternal24, config.analogVoltageEnable24,
                           config.powerAmplifierVoltageControl24, err);
@@ -1754,7 +1754,7 @@ State At86rf215::get_state(Transceiver transceiver, Error &err) {
                           rxConfig.receiverBandwidth09, rxConfig.rxRelativeCutoffFrequency09,
                           rxConfig.receiverSampleRate09, rxConfig.agcInput09,
                           rxConfig.averageTimeNumberSamples09, rxConfig.agcEnabled09,
-                          rxConfig.automaticGainControlTarget09, rxConfig.gainControlWord09, err);
+                          rxConfig.automaticGainTarget09, rxConfig.gainControlWord09, err);
         if (err != Error::NO_ERRORS) {
             return;
         }
@@ -1762,7 +1762,7 @@ State At86rf215::get_state(Transceiver transceiver, Error &err) {
                           rxConfig.receiverBandwidth24, rxConfig.rxRelativeCutoffFrequency24,
                           config.receiverSampleRate24, rxConfig.agcInput24,
                           rxConfig.averageTimeNumberSamples24, rxConfig.agcEnabled24,
-                          rxConfig.automaticGainControlTarget24, rxConfig.gainControlWord24, err);
+                          rxConfig.automaticGainTarget24, rxConfig.gainControlWord24, err);
         if (err != Error::NO_ERRORS) {
             return;
         }
@@ -1955,8 +1955,5 @@ State At86rf215::get_state(Transceiver transceiver, Error &err) {
             // Receiver Frame Start handling
             rx_ongoing = true;
         }
-
     }
-
-
 }
