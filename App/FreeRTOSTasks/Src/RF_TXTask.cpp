@@ -59,14 +59,6 @@ void RF_TXTask::execute() {
                 transceiver.transmitBasebandPacketsTx(RF09, packetTestData.packet.data(), packetTestData.length, error);
                 LOG_INFO << "packet sent: " << counter;
             }
-            /// Handle TRXRDY flag
-            if (receivedEvents & TRXRDY)
-                /// Handle TRXRDY flag
-                if (receivedEvents & TRXERR)
-                    LOG_ERROR << "PLL UNLOCKED.";
-            /// Handle IFSERR flag
-            if (receivedEvents & IFSERR)
-                LOG_ERROR << "SYNCHRONIZATION ERROR.";
             receivedEvents = 0;
         }
         xSemaphoreGive(TransceiverHandler::transceiver_semaphore);
