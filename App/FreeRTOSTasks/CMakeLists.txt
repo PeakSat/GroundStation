@@ -2,7 +2,7 @@ add_subdirectory(Inc)
 
 add_library(freertos_tasks)
 
-target_sources(freertos_tasks PRIVATE Src/TransceiverTask.cpp Src/UARTGatekeeper.cpp)
+target_sources(freertos_tasks PRIVATE Src/UARTGatekeeper.cpp Src/RF_RXTask.cpp Src/RF_TXTask.cpp)
 
 target_include_directories(freertos_tasks PRIVATE Inc)
 
