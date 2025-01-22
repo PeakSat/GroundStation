@@ -2,38 +2,40 @@
 #include "Task.hpp"
 #include "task.h"
 #include "at86rf215.hpp"
-#include "queue.h"
 #include "etl/array.h"
 #include "etl/optional.h"
 
+#define TX_TRANSMIT 1000
+#define MaxPacketLength 256
+
+
 using namespace AT86RF215;
-extern SPI_HandleTypeDef hspi4;
+
+using PacketType = etl::array<uint8_t, MaxPacketLength>;
+
+struct PacketData {
+    PacketType packet;
+    uint16_t length;
+};
 
 class RF_TXTask : public Task {
 public:
-
-    constexpr static uint16_t MaxPacketLength = 1024;
-    using PacketType = etl::array<uint8_t, MaxPacketLength>;
-    AT86RF215::At86rf215 transceiver = At86rf215(&hspi4, AT86RF215Configuration());
-
-    RF_TXTask() : Task("Transceiver signal transmission") {}
-    void execute();
-    uint8_t calculatePllChannelNumber09(uint32_t frequency);
-    uint16_t calculatePllChannelFrequency09(uint32_t frequency);
-    uint8_t checkTheSPI();
+    RF_TXTask() : Task("RF-TX Task") {}
+    void print_state();
+    [[noreturn]]void execute();
+    void ensureTxMode();
+    static PacketData createRandomPacketData(uint16_t length);
     void createTask() {
-        xTaskCreateStatic(vClassTask < RF_TXTask > , this->TaskName,
-                          RF_TXTask::TaskStackDepth, this, tskIDLE_PRIORITY + 1,
-                          this->taskStack, &(this->taskBuffer));
+        this->taskHandle = xTaskCreateStatic(vClassTask<RF_TXTask>, this->TaskName,
+                                             this->TaskStackDepth, this, tskIDLE_PRIORITY + 1,
+                                             this->taskStack, &(this->taskBuffer));
     }
-
 private:
-    constexpr static uint16_t DelayMs = 1;
-    constexpr static uint16_t TaskStackDepth = 15000;
-    constexpr static uint32_t FrequencyUHFTX = 401000;
-    AT86RF215::Error error;
-    StackType_t taskStack[TaskStackDepth];
-    AT86RF215::AT86RF215Configuration CustomConfig;
+    constexpr static uint16_t TaskStackDepth = 5000;
+    /// Frequency in kHz
+    constexpr static uint32_t FrequencyUHFTX = 400000;
+    Error error = NO_ERRORS;
+    StackType_t taskStack[TaskStackDepth]{};
 };
 
 inline etl::optional<RF_TXTask> rf_txtask;

@@ -62,8 +62,10 @@ static void MX_USART3_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void app_main(void);
 /* USER CODE END 0 */
+
+
 
 /**
   * @brief  The application entry point.

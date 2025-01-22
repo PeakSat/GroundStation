@@ -65,6 +65,9 @@ extern uint32_t SystemCoreClock;
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION	0
 #define configUSE_MALLOC_FAILED_HOOK			1
 #define configCHECK_FOR_STACK_OVERFLOW			2
+#define configTASK_NOTIFICATION_ARRAY_ENTRIES   8
+
+
 
 /* Defaults to size_t for backward compatibility, but can be changed
  * if lengths will always be less than the number of bytes in a size_t. */
