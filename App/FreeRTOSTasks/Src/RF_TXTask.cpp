@@ -110,6 +110,7 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                 /// Set the down-link frequency
                                 transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
                                 transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
+                                transceiver.chip_reset(error);
                                 transceiver.setup(error);
                                 /// send the packet
                                 counter++;
@@ -132,6 +133,7 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                         /// Set the down-link frequency
                                         transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
                                         transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
+                                        transceiver.chip_reset(error);
                                         transceiver.setup(error);
                                         /// send the packet
                                         counter++;
@@ -155,11 +157,11 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                         /// Set the down-link frequency
                                         transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
                                         transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
+                                        transceiver.chip_reset(error);
                                         transceiver.setup(error);
                                         // send the packet
                                         counter++;
                                         packetTestData.packet[0] = counter;
-                                        transceiver.print_error(error);
                                         transceiver.transmitBasebandPacketsTx(RF09, packetTestData.packet.data(), packetTestData.length, error);
                                         LOG_INFO << "[TX RXFE] c: " << counter;
                                     }
