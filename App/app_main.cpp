@@ -13,6 +13,16 @@
 void app_main( void )
 {
 
+    transceiver.setGeneralConfig(GeneralConfiguration::DefaultGeneralConfig());
+    transceiver.setRXConfig(RXConfig::DefaultRXConfig());
+    transceiver.setTXConfig(TXConfig::DefaultTXConfig());
+    transceiver.setBaseBandCoreConfig(BasebandCoreConfig::DefaultBasebandCoreConfig());
+    transceiver.setFrequencySynthesizerConfig(FrequencySynthesizer::DefaultFrequencySynthesizerConfig());
+    transceiver.setExternalFrontEndControlConfig(ExternalFrontEndConfig::DefaultExternalFrontEndConfig());
+    transceiver.setInterruptConfig(InterruptsConfig::DefaultInterruptsConfig());
+    transceiver.setRadioInterruptConfig(RadioInterruptsConfig::DefaultRadioInterruptsConfig());
+    transceiver.setIQInterfaceConfig(IQInterfaceConfig::DefaultIQInterfaceConfig());
+
     uartGatekeeperTask.emplace();
     rf_rxtask.emplace();
     rf_txtask.emplace();

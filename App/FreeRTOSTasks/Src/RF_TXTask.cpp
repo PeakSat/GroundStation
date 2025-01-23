@@ -9,18 +9,21 @@ void RF_TXTask::ensureTxMode() {
     switch (state) {
         case RF_NOP:
             LOG_DEBUG << "[TX ENSURE] STATE: NOP";
+            transceiver.set_state(RF09, RF_TRXOFF, error);
         break;
         case RF_SLEEP:
             LOG_DEBUG << "[TX ENSURE] STATE: SLEEP";
+            transceiver.set_state(RF09, RF_TRXOFF, error);
         break;
         case RF_TRXOFF:
             LOG_DEBUG << "[TX ENSURE] STATE: TRXOFF";
         break;
         case RF_TX:
             LOG_DEBUG << "[TX ENSURE] STATE: TX";
+            transceiver.set_state(RF09, RF_TRXOFF, error);
         break;
         case RF_RX:
-            // transceiver.set_state(RF09, RF_TRXOFF, error);
+            transceiver.set_state(RF09, RF_TRXOFF, error);
             // LOG_DEBUG << "[TX ENSURE] STATE: RX";
             break;
         case RF_TRANSITION:
@@ -36,6 +39,8 @@ void RF_TXTask::ensureTxMode() {
             // vTaskDelay(20);
             // HAL_GPIO_WritePin(RF_RST_GPIO_Port, RF_RST_Pin, GPIO_PIN_SET);
             // vTaskDelay(10);
+            transceiver.set_state(RF09, RF_TRXOFF, error);
+
         break;
         case RF_TXPREP:
             // LOG_DEBUG << "[TX ENSURE] STATE: TXPREP";
