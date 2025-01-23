@@ -18,7 +18,7 @@ extern uint8_t transmit;
 namespace AT86RF215 {
     class TransceiverHandler {
     public:
-        SemaphoreHandle_t resources_mtx = nullptr;
+        SemaphoreHandle_t resources_mtx;
         StaticSemaphore_t mtx_buf = {};
         void initialize_semaphore() {
             resources_mtx = xSemaphoreCreateMutexStatic(&mtx_buf);
