@@ -33,7 +33,7 @@ public:
 private:
     constexpr static uint16_t TaskStackDepth = 5000;
     /// Frequency in kHz
-    constexpr static uint32_t FrequencyUHFTX = 400000;
+    constexpr static uint32_t FrequencyUHFTX = 401000;
     Error error = NO_ERRORS;
     StackType_t taskStack[TaskStackDepth]{};
 };

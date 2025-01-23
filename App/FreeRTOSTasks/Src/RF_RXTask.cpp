@@ -67,16 +67,15 @@ void RF_RXTask::ensureRxMode() {
     vTaskDelay(5000);
     LOG_INFO << "[RF RX TASK]";
     transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
+    // transceiver.set_state(RF09, RF_TRXOFF, error);
     /// Check transceiver connection
     if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
         auto status = transceiver.check_transceiver_connection(error);
         if (status.has_value()) {
         } else
             LOG_ERROR << "CONNECTION ##ERROR## WITH CODE: " << status.error();
-        transceiver.set_state(RF09, RF_TRXOFF, error);
         transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
         transceiver.chip_reset(error);
-        transceiver.setup(error);
         xSemaphoreGive(transceiver_handler.resources_mtx);
     }
     uint16_t received_length = 0;
@@ -116,7 +115,6 @@ void RF_RXTask::ensureRxMode() {
                             transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
                             transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
                             transceiver.chip_reset(error);
-                            transceiver.setup(error);
                             ensureRxMode();
                         }
                         break;
@@ -140,7 +138,6 @@ void RF_RXTask::ensureRxMode() {
                                     transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
                                     transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
                                     transceiver.chip_reset(error);
-                                    transceiver.setup(error);
                                     ensureRxMode();
                                 }
                             }
@@ -152,7 +149,6 @@ void RF_RXTask::ensureRxMode() {
                             transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
                             transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
                             transceiver.chip_reset(error);
-                            transceiver.setup(error);
                             ensureRxMode();
                         }
                         break;
