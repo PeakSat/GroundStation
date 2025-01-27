@@ -94,7 +94,8 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
     uint8_t counter = 0;
     uint32_t receivedEventsTransmit;
     while (true) {
-        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TRANSMIT, pdFALSE, pdTRUE, &receivedEventsTransmit, pdTICKS_TO_MS(2000)) == pdTRUE) {
+
+        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TRANSMIT, pdFALSE, pdTRUE, &receivedEventsTransmit, pdTICKS_TO_MS(10000)) == pdTRUE) {
             if (receivedEventsTransmit & TRANSMIT) {
                 if (counter == 255)
                     counter = 0;
@@ -108,10 +109,10 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                             if (!transceiver.rx_ongoing && !transceiver.tx_ongoing) {
                                 ensureTxMode();
                                 /// Set the down-link frequency
-                                transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
-                                transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                                transceiver.chip_reset(error);
-                                transceiver.setup(error);
+                                // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
+                                // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
+                                // transceiver.chip_reset(error);
+                                // transceiver.setup(error);
                                 /// send the packet
                                 counter++;
                                 packetTestData.packet[0] = counter;
@@ -125,16 +126,16 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                     }
                     case TX_ONG: {
                         uint32_t receivedEventsTXFE;
-                        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TXFE, pdFALSE, pdTRUE, &receivedEventsTXFE, pdTICKS_TO_MS(1000)) == pdTRUE) {
+                        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TXFE_TX, pdFALSE, pdTRUE, &receivedEventsTXFE, pdTICKS_TO_MS(1000)) == pdTRUE) {
                             if (receivedEventsTXFE & TXFE) {
                                 if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
                                     if (!transceiver.rx_ongoing && !transceiver.tx_ongoing) {
                                         ensureTxMode();
                                         /// Set the down-link frequency
-                                        transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
-                                        transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                                        transceiver.chip_reset(error);
-                                        transceiver.setup(error);
+                                        // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
+                                        // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
+                                        // transceiver.chip_reset(error);
+                                        // transceiver.setup(error);
                                         /// send the packet
                                         counter++;
                                         packetTestData.packet[0] = counter;
@@ -155,10 +156,10 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                     if (!transceiver.rx_ongoing && !transceiver.tx_ongoing) {
                                         ensureTxMode();
                                         /// Set the down-link frequency
-                                        transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
-                                        transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                                        transceiver.chip_reset(error);
-                                        transceiver.setup(error);
+                                        // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
+                                        // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
+                                        // transceiver.chip_reset(error);
+                                        // transceiver.setup(error);
                                         // send the packet
                                         counter++;
                                         packetTestData.packet[0] = counter;

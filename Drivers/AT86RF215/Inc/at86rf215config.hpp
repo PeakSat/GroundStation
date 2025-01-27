@@ -353,11 +353,11 @@ namespace AT86RF215 {
         static ExternalFrontEndConfig DefaultExternalFrontEndConfig() {
             return {
                 .externalLNABypass09 = ExternalLNABypass::FALSE,
-                .automaticGainControlMAP09 = AutomaticGainControlMAP::AGC_BACKOFF_12,
+                .automaticGainControlMAP09 = AutomaticGainControlMAP::INTERNAL_AGC,
                 .analogVoltageEnable09 = AnalogVoltageEnable::ENABLED,
                 .automaticVoltageExternal09 = AutomaticVoltageExternal::DISABLED,
                 .powerAmplifierVoltageControl09 = PowerAmplifierVoltageControl::PAVC_2V4,
-                .externalFrontEnd_09 = ExternalFrontEndControl::front_end_config_txrx_switch};
+                .externalFrontEnd_09 = ExternalFrontEndControl::no_front_end_control};
         }
         void set_RFn_AUXS(
             ExternalLNABypass extLNA09,            // externalLNABypass09

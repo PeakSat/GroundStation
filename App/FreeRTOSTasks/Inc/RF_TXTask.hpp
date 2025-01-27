@@ -5,7 +5,7 @@
 #include "etl/array.h"
 #include "etl/optional.h"
 
-#define TX_TRANSMIT 1000
+#define TX_TRANSMIT 5000
 #define MaxPacketLength 1024
 
 

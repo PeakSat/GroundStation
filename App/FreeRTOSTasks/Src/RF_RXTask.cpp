@@ -120,12 +120,16 @@ void RF_RXTask::ensureRxMode() {
                         break;
                     }
                     case TX_ONG: {
-                        print_tx_ong++;
-                        if (print_tx_ong == 30) {
-                            LOG_DEBUG << "[RX] TXONG";
-                            print_tx_ong = 0;
+                        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TXFE_RX, pdFALSE, pdTRUE, &receivedEvents, pdMS_TO_TICKS(1000)) == pdTRUE) {
+                            if (receivedEvents & TXFE) {
+                                ensureRxMode();
+                                LOG_INFO << "[RX] TXFE";
+                            }
                         }
-                        // TODO handling
+                        else {
+                            LOG_ERROR << "[RX] TXFE NOT RECEIVED";
+                            // TODO: HANDLE THE DEADLOCK
+                        }
                         break;
                     }
                     case RX_ONG: {
