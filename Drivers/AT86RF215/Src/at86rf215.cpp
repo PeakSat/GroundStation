@@ -643,6 +643,7 @@ namespace AT86RF215 {
         /// write to tx frame buffer
 
         spi_block_write_8(regfbtxs, length, packet, err);
+
         if (err != NO_ERRORS) {
             return;
         }

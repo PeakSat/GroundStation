@@ -3,6 +3,7 @@
 #include "Logger.hpp"
 #include <timers.h>
 #include "main.h"
+#define MAGIC_NUMBER 4
 
 void RF_TXTask::ensureTxMode() {
     State state = transceiver.get_state(RF09, error);
@@ -119,7 +120,7 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                 /// send the packet
                                 counter++;
                                 packetTestData.packet[0] = counter;
-                                transceiver.transmitBasebandPacketsTx(RF09, test_array, 128, error);
+                                transceiver.transmitBasebandPacketsTx(RF09, test_array, 128 + MAGIC_NUMBER, error);
                                 LOG_INFO << "[TX] c: " << counter;
                                 transceiver.print_error(error);
                             }
