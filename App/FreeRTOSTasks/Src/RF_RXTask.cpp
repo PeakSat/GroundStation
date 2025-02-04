@@ -69,14 +69,39 @@ void RF_RXTask::ensureRxMode() {
     transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
     // transceiver.set_state(RF09, RF_TRXOFF, error);
     /// Check transceiver connection
-    if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
-        auto status = transceiver.check_transceiver_connection(error);
-        if (status.has_value()) {
-        } else
-            LOG_ERROR << "CONNECTION ##ERROR## WITH CODE: " << status.error();
-        transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-        transceiver.chip_reset(error);
-        xSemaphoreGive(transceiver_handler.resources_mtx);
+    const int MAX_RETRIES = 3;
+    int attempt = 0;
+    bool success = false;
+    while (attempt < MAX_RETRIES) {
+        if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
+            auto status = transceiver.check_transceiver_connection(error);
+            if (status.has_value()) {
+                success = true;  // Connection successful
+                LOG_INFO << "[SPI CONNECTION ESTABLISHED]";
+            } else {
+                LOG_ERROR << "CONNECTION ##ERROR## WITH CODE: " << status.error();
+            }
+            transceiver.set_state(RF09, RF_TRXOFF, error);
+            transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09,
+                                      transceiver.freqSynthesizerConfig.channelNumber09,
+                                      transceiver.freqSynthesizerConfig.channelMode09,
+                                      transceiver.freqSynthesizerConfig.loopBandwidth09,
+                                      transceiver.freqSynthesizerConfig.channelSpacing09, error);
+            transceiver.chip_reset(error);
+
+            xSemaphoreGive(transceiver_handler.resources_mtx);
+
+            if (success) {
+                break;  // Exit loop if successful
+            }
+
+            attempt++;
+            LOG_ERROR << "Retrying connection attempt " << attempt << "/" << MAX_RETRIES;
+            vTaskDelay(pdMS_TO_TICKS(100));  // Small delay before retrying
+        }
+    }
+    if (!success) {
+        LOG_ERROR << "Failed to establish connection after " << MAX_RETRIES << " attempts.";
     }
     uint16_t received_length = 0;
     uint8_t current_counter = 0;
@@ -111,10 +136,10 @@ void RF_RXTask::ensureRxMode() {
                         trx_state = transceiver.get_state(RF09, error);
                         if (trx_state != RF_RX) {
                             // set the uplink frequency
-                            transceiver.set_state(RF09, RF_TRXOFF, error);
-                            transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
-                            transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                            transceiver.chip_reset(error);
+                            // transceiver.set_state(RF09, RF_TRXOFF, error);
+                            // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
+                            // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
+                            // transceiver.chip_reset(error);
                             ensureRxMode();
                         }
                         break;
@@ -128,7 +153,14 @@ void RF_RXTask::ensureRxMode() {
                         }
                         else {
                             LOG_ERROR << "[RX] TXFE NOT RECEIVED";
-                            // TODO: HANDLE THE DEADLOCK
+                            // DEADLOCK HANDLING
+                            transceiver.print_error(error);
+                            transceiver.print_state(RF09, error);
+                            transceiver.set_state(RF09, RF_TRXOFF, error);
+                            transceiver.chip_reset(error);
+                            transceiver.print_error(error);
+                            transceiver.tx_ongoing = false;
+                            ensureRxMode();
                         }
                         break;
                     }
@@ -138,10 +170,10 @@ void RF_RXTask::ensureRxMode() {
                                 trx_state = transceiver.get_state(RF09, error);
                                 if (trx_state != RF_RX) {
                                     // set the uplink frequency
-                                    transceiver.set_state(RF09, RF_TRXOFF, error);
-                                    transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
-                                    transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                                    transceiver.chip_reset(error);
+                                    // transceiver.set_state(RF09, RF_TRXOFF, error);
+                                    // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
+                                    // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
+                                    // transceiver.chip_reset(error);
                                     ensureRxMode();
                                 }
                             }
@@ -149,10 +181,10 @@ void RF_RXTask::ensureRxMode() {
                         trx_state = transceiver.get_state(RF09, error);
                         if (trx_state != RF_RX) {
                             // set the uplink frequency
-                            transceiver.set_state(RF09, RF_TRXOFF, error);
-                            transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
-                            transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                            transceiver.chip_reset(error);
+                            // transceiver.set_state(RF09, RF_TRXOFF, error);
+                            // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
+                            // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
+                            // transceiver.chip_reset(error);
                             ensureRxMode();
                         }
                         break;
@@ -182,6 +214,10 @@ void RF_RXTask::ensureRxMode() {
             if (transceiver.Voltage_Drop) {
                 transceiver.Voltage_Drop = false;
                 LOG_ERROR << "[RX] Voltage Drop";
+            }
+            if (transceiver.TransmitterFrameEnd_flag) {
+                transceiver.TransmitterFrameEnd_flag = false;
+                LOG_INFO << "[RX] Transceiver FRAME END";
             }
             xSemaphoreGive(transceiver_handler.resources_mtx);
         }

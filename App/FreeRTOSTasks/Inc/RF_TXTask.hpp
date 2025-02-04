@@ -6,7 +6,7 @@
 #include "etl/optional.h"
 
 #define TX_TRANSMIT 5000
-#define MaxPacketLength 1024
+#define MaxPacketLength 128
 
 
 using namespace AT86RF215;

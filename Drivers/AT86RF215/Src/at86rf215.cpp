@@ -44,6 +44,7 @@ namespace AT86RF215 {
         uint8_t msg[2] = {static_cast<uint8_t>(0x80 | ((address >> 8) & 0x7F)), static_cast<uint8_t>(address & 0xFF)};
         HAL_GPIO_WritePin(RF_SPI_SEL_GPIO_Port, RF_SPI_SEL_Pin, GPIO_PIN_RESET);
         uint8_t hal_error = HAL_SPI_Transmit(hspi, msg, 2, TIMEOUT);
+
         hal_error = HAL_SPI_Transmit(hspi, value, n, TIMEOUT);
 
         if (hal_error != HAL_OK) {
@@ -646,6 +647,9 @@ namespace AT86RF215 {
             return;
         }
         set_state(transceiver, RF_TXPREP, err);
+        if (err != NO_ERRORS) {
+            return;
+        }
         tx_ongoing = true;
     }
 
@@ -1524,6 +1528,7 @@ void At86rf215::print_error(Error& err) {
         }
         if ((irq & InterruptMask::TransmitterFrameEnd) != 0) {
             xHigherPriorityTaskWoken = pdFALSE;
+            TransmitterFrameEnd_flag = true;
             tx_ongoing = false;
             xTaskNotifyIndexedFromISR(rf_txtask->taskHandle, NOTIFY_INDEX_TXFE_TX, TXFE, eSetBits, &xHigherPriorityTaskWoken);
             xTaskNotifyIndexedFromISR(rf_rxtask->taskHandle, NOTIFY_INDEX_TXFE_RX, TXFE, eSetBits, &xHigherPriorityTaskWoken);
