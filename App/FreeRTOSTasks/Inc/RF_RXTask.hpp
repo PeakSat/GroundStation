@@ -8,7 +8,7 @@
 #include <etl/expected.h>
 #include "main.h"
 
-#define RX_REFRESH_PERIOD_MS 50
+#define RX_REFRESH_PERIOD_MS 20
 
 
 using namespace AT86RF215;
