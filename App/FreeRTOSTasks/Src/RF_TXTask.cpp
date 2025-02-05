@@ -94,10 +94,8 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
     uint8_t state = 0;
     uint8_t counter = 0;
     uint32_t receivedEventsTransmit;
-    uint8_t test_array[128] = {0};
-    for (uint8_t i = 0; i < 128; i++) {
-        test_array[i] = i;
-    }
+    // TODO add the rest of TCs
+    uint8_t test_array[16] = {3, 27, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     while (true) {
         if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TRANSMIT, pdFALSE, pdTRUE, &receivedEventsTransmit, pdTICKS_TO_MS(10000)) == pdTRUE) {
             if (receivedEventsTransmit & TRANSMIT) {
@@ -120,7 +118,7 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                 /// send the packet
                                 counter++;
                                 packetTestData.packet[0] = counter;
-                                transceiver.transmitBasebandPacketsTx(RF09, test_array, 128 + MAGIC_NUMBER, error);
+                                transceiver.transmitBasebandPacketsTx(RF09, test_array, 16 + MAGIC_NUMBER, error);
                                 LOG_INFO << "[TX] c: " << counter;
                                 transceiver.print_error(error);
                             }
