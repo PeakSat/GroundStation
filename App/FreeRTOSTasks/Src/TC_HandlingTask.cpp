@@ -9,19 +9,14 @@ void TC_HandlingTask::execute() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 while (true) {
 
-    xTaskNotifyWait(0, 0, &ulNotifiedValue, portMAX_DELAY);
+    xTaskNotifyWait(0, 0, &ulNotifiedValue, 2000);
     if (UART_RxMessage_size) {
-        for (uint8_t i = 0; i < UART_RxMessage_size; i++) {
-            LOG_DEBUG << static_cast<char>(UART_Rx_buffer[i]);
-        }
-        xTaskNotifyIndexedFromISR(
-                rf_txtask->taskHandle,
-                NOTIFY_INDEX_TRANSMIT,
-                TRANSMIT,
-                eSetBits,
-                &xHigherPriorityTaskWoken);
+if (true) {
+
+}
+        UART_RxMessage_size=0;
     }
-    LOG_DEBUG << "running";
+    LOG_DEBUG << "New TM[3,25] message! 8 1 192 0 0 56 32 3 25 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 66 149 75 77 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 0 0 0 255 20 ";
 
 // vTaskDelay(pdMS_TO_TICKS(1000));
     }

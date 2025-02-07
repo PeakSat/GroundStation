@@ -73,9 +73,3 @@ extern "C" void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t S
     __HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_TC);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    BaseType_t xHigherPriorityTaskWoken = false;
-    if (huart->Instance == USART3) {
-        xSemaphoreGiveFromISR(UART_Gatekeeper_Semaphore,&xHigherPriorityTaskWoken);
-    }
-}
