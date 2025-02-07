@@ -35,13 +35,14 @@ void app_main( void )
     tc_handlingtask.emplace();
 
     uartGatekeeperTask->createTask();
-    // rf_rxtask->createTask();
-    // rf_txtask->createTask();
+    rf_rxtask->createTask();
+    rf_txtask->createTask();
     tc_handlingtask->createTask();
 
 
     transceiver_handler.initialize_semaphore();
     HAL_UARTEx_ReceiveToIdle_DMA(&huart3,UART_Rx_buffer,1024);
+    UART_Gatekeeper_Semaphore = xSemaphoreCreateBinary();
     /* Start the scheduler. */
     vTaskStartScheduler();
 
@@ -72,4 +73,10 @@ extern "C" void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t S
     //  disabling the full buffer interrupt //
     __HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_TC);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+    BaseType_t xHigherPriorityTaskWoken = false;
+    if (huart->Instance == USART3) {
+        xSemaphoreGiveFromISR(UART_Gatekeeper_Semaphore,&xHigherPriorityTaskWoken);
+    }
 }
