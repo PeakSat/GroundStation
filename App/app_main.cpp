@@ -28,8 +28,8 @@ void app_main( void )
     rf_txtask.emplace();
 
     uartGatekeeperTask->createTask();
-    rf_rxtask->createTask();
-    rf_txtask->createTask();
+    // rf_rxtask->createTask();
+    // rf_txtask->createTask();
 
 
     transceiver_handler.initialize_semaphore();
