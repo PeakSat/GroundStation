@@ -3,6 +3,7 @@
 #include "Logger.hpp"
 #include <timers.h>
 #include "main.h"
+#include "TC_HandlingTask.hpp"
 #define MAGIC_NUMBER 4
 
 void RF_TXTask::ensureTxMode() {
@@ -118,7 +119,7 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                 /// send the packet
                                 counter++;
                                 packetTestData.packet[0] = counter;
-                                transceiver.transmitBasebandPacketsTx(RF09, test_array, 16 + MAGIC_NUMBER, error);
+                                transceiver.transmitBasebandPacketsTx(RF09, UART_Rx_buffer, UART_RxMessage_size + MAGIC_NUMBER, error);
                                 LOG_INFO << "[TX] c: " << counter;
                                 transceiver.print_error(error);
                             }
@@ -141,7 +142,7 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                         /// send the packet
                                         counter++;
                                         packetTestData.packet[0] = counter;
-                                        transceiver.transmitBasebandPacketsTx(RF09, packetTestData.packet.data(), packetTestData.length, error);
+                                        transceiver.transmitBasebandPacketsTx(RF09, UART_Rx_buffer, UART_RxMessage_size + MAGIC_NUMBER, error);
                                         LOG_INFO << "[TX TXFE] c: " << counter;
                                     }
                                     xSemaphoreGive(transceiver_handler.resources_mtx);
@@ -165,7 +166,7 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                         // send the packet
                                         counter++;
                                         packetTestData.packet[0] = counter;
-                                        transceiver.transmitBasebandPacketsTx(RF09, packetTestData.packet.data(), packetTestData.length, error);
+                                        transceiver.transmitBasebandPacketsTx(RF09, UART_Rx_buffer, UART_RxMessage_size + MAGIC_NUMBER, error);
                                         LOG_INFO << "[TX RXFE] c: " << counter;
                                     }
                                     xSemaphoreGive(transceiver_handler.resources_mtx);

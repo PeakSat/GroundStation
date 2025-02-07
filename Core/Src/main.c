@@ -100,6 +100,7 @@ int main(void)
   MX_SPI4_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+  HAL_NVIC_SetPriority(USART3_IRQn, 5, 0);
     app_main();
   /* USER CODE END 2 */
 
