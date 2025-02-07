@@ -1,5 +1,7 @@
 #pragma once
 
+#include <semphr.h>
+
 #include "Task.hpp"
 #include "queue.h"
 #include "etl/string.h"
@@ -13,6 +15,7 @@
  * needing to access UART, send the data in a queue. Then, this task receives queue elements and sends them to UART.
  */
 
+inline SemaphoreHandle_t UART_Gatekeeper_Semaphore;
 
 class UARTGatekeeperTask : public Task {
 private:

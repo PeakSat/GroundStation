@@ -14,6 +14,7 @@
 
 extern UART_HandleTypeDef huart3;
 extern DMA_HandleTypeDef hdma_usart3_rx;
+extern SemaphoreHandle_t UART_Gatekeeper_Semaphore;
 
 void app_main( void )
 {
@@ -71,4 +72,9 @@ extern "C" void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t S
     //  disabling the full buffer interrupt //
     __HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_TC);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART3) {
+        xSemaphoreGiveFromISR(UART_Gatekeeper_Semaphore);
+    }
 }
