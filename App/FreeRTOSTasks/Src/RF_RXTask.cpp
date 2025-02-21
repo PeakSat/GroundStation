@@ -124,7 +124,8 @@ void RF_RXTask::ensureRxMode() {
                     else {
                         drop_counter++;
                         LOG_DEBUG << "[RX DROP] c: " << drop_counter;
-                    }
+                    }+
+
                     xSemaphoreGive(transceiver_handler.resources_mtx);
                 }
             }

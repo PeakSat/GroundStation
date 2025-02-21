@@ -1523,9 +1523,9 @@ void At86rf215::print_error(Error& err) {
         }
         if ((irq & InterruptMask::AGCHold) != 0) {
             // AGC Hold handling
-            xHigherPriorityTaskWoken = pdFALSE;
-            xTaskNotifyIndexedFromISR(rf_rxtask->taskHandle, NOTIFY_INDEX_AGC, AGC_HOLD, eSetBits, &xHigherPriorityTaskWoken);
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            // xHigherPriorityTaskWoken = pdFALSE;
+            // xTaskNotifyIndexedFromISR(rf_rxtask->taskHandle, NOTIFY_INDEX_AGC, AGC_HOLD, eSetBits, &xHigherPriorityTaskWoken);
+            // portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         }
         if ((irq & InterruptMask::TransmitterFrameEnd) != 0) {
             xHigherPriorityTaskWoken = pdFALSE;

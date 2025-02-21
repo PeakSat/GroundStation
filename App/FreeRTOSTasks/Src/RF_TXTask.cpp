@@ -95,7 +95,11 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
     uint8_t counter = 0;
     uint32_t receivedEventsTransmit;
     // TODO add the rest of TCs
-    uint8_t test_array[16] = {3, 27, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // Are you alive TC [17,1]
+    uint8_t test_array[] = {24, 1, 192, 10, 0, 5, 47, 17, 1, 2, 5};
+    size_t size_test_array = sizeof(test_array) / sizeof(test_array[0]);
+    uint16_t corrected_tx_length = size_test_array + MAGIC_NUMBER;
+    LOG_DEBUG << "[TX] TX LENGTH: " << corrected_tx_length;
     while (true) {
         if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TRANSMIT, pdFALSE, pdTRUE, &receivedEventsTransmit, pdTICKS_TO_MS(10000)) == pdTRUE) {
             if (receivedEventsTransmit & TRANSMIT) {
@@ -110,15 +114,9 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                         if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
                             if (!transceiver.rx_ongoing && !transceiver.tx_ongoing) {
                                 ensureTxMode();
-                                /// Set the down-link frequency
-                                // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
-                                // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                                // transceiver.chip_reset(error);
-                                // transceiver.setup(error);
-                                /// send the packet
                                 counter++;
                                 packetTestData.packet[0] = counter;
-                                transceiver.transmitBasebandPacketsTx(RF09, test_array, 16 + MAGIC_NUMBER, error);
+                                transceiver.transmitBasebandPacketsTx(RF09, test_array, corrected_tx_length, error);
                                 LOG_INFO << "[TX] c: " << counter;
                                 transceiver.print_error(error);
                             }
@@ -133,15 +131,9 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                 if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
                                     if (!transceiver.rx_ongoing && !transceiver.tx_ongoing) {
                                         ensureTxMode();
-                                        /// Set the down-link frequency
-                                        // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
-                                        // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                                        // transceiver.chip_reset(error);
-                                        // transceiver.setup(error);
-                                        /// send the packet
                                         counter++;
                                         packetTestData.packet[0] = counter;
-                                        transceiver.transmitBasebandPacketsTx(RF09, packetTestData.packet.data(), packetTestData.length, error);
+                                        transceiver.transmitBasebandPacketsTx(RF09, test_array, corrected_tx_length, error);
                                         LOG_INFO << "[TX TXFE] c: " << counter;
                                     }
                                     xSemaphoreGive(transceiver_handler.resources_mtx);
@@ -157,15 +149,9 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                 if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
                                     if (!transceiver.rx_ongoing && !transceiver.tx_ongoing) {
                                         ensureTxMode();
-                                        /// Set the down-link frequency
-                                        // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFTX);
-                                        // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                                        // transceiver.chip_reset(error);
-                                        // transceiver.setup(error);
-                                        // send the packet
                                         counter++;
                                         packetTestData.packet[0] = counter;
-                                        transceiver.transmitBasebandPacketsTx(RF09, packetTestData.packet.data(), packetTestData.length, error);
+                                        transceiver.transmitBasebandPacketsTx(RF09, test_array, corrected_tx_length, error);
                                         LOG_INFO << "[TX RXFE] c: " << counter;
                                     }
                                     xSemaphoreGive(transceiver_handler.resources_mtx);
