@@ -18,12 +18,29 @@ extern uint8_t transmit;
 namespace AT86RF215 {
     class TransceiverHandler {
     public:
-        SemaphoreHandle_t resources_mtx;
+        SemaphoreHandle_t resources_mtx = nullptr;
+        SemaphoreHandle_t txfeSemaphore_rx = nullptr;
+        SemaphoreHandle_t txfeSemaphore_tx = nullptr;
+        SemaphoreHandle_t rxfeSemaphore_rx = nullptr;
+        SemaphoreHandle_t rxfeSemaphore_tx = nullptr;
+
         StaticSemaphore_t mtx_buf = {};
-        void initialize_semaphore() {
-            resources_mtx = xSemaphoreCreateMutexStatic(&mtx_buf);
-        }
+        uint16_t RX_REFRESH_PERIOD_MS = 50;
+        uint16_t BEACON_PERIOD_MS = 5000;
+        void initialize_semaphore();
     };
+
+    inline void TransceiverHandler::initialize_semaphore() {
+        resources_mtx = xSemaphoreCreateMutexStatic(&mtx_buf);
+        if (resources_mtx == nullptr) {
+            LOG_ERROR << "Failed to create semaphore";
+        }
+        txfeSemaphore_rx = xSemaphoreCreateBinary();
+        txfeSemaphore_tx = xSemaphoreCreateBinary();
+        rxfeSemaphore_rx = xSemaphoreCreateBinary();
+        rxfeSemaphore_tx = xSemaphoreCreateBinary();
+    }
+
 
     // rf_state = (transceiver.rx_ongoing << 1) | transceiver.tx_ongoing)
     enum RF_STATE {

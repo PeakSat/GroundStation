@@ -1531,7 +1531,10 @@ void At86rf215::print_error(Error& err) {
             xHigherPriorityTaskWoken = pdFALSE;
             TransmitterFrameEnd_flag = true;
             tx_ongoing = false;
-            xTaskNotifyIndexedFromISR(rf_txtask->taskHandle, NOTIFY_INDEX_TXFE_TX, TXFE, eSetBits, &xHigherPriorityTaskWoken);
+            // xTaskNotifyIndexedFromISR(rf_txtask->taskHandle, NOTIFY_INDEX_TXFE_TX, TXFE, eSetBits, &xHigherPriorityTaskWoken);
+            xSemaphoreGiveFromISR(transceiver_handler.txfeSemaphore_tx, &xHigherPriorityTaskWoken);
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            xHigherPriorityTaskWoken = pdFALSE;
             xTaskNotifyIndexedFromISR(rf_rxtask->taskHandle, NOTIFY_INDEX_TXFE_RX, TXFE, eSetBits, &xHigherPriorityTaskWoken);
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         }

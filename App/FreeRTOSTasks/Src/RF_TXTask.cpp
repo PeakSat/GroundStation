@@ -111,6 +111,7 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                 }
                 switch (state) {
                     case READY: {
+                        LOG_DEBUG << "[TX] READY";
                         if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
                             if (!transceiver.rx_ongoing && !transceiver.tx_ongoing) {
                                 ensureTxMode();
@@ -126,8 +127,9 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                     }
                     case TX_ONG: {
                         uint32_t receivedEventsTXFE;
-                        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TXFE_TX, pdFALSE, pdTRUE, &receivedEventsTXFE, pdTICKS_TO_MS(1000)) == pdTRUE) {
-                            if (receivedEventsTXFE & TXFE) {
+                        LOG_DEBUG << "[TX] TXONG";
+                        if (xSemaphoreTake(transceiver_handler.txfeSemaphore_tx, pdMS_TO_TICKS(500))) {
+                            // if (receivedEventsTXFE & TXFE) {
                                 if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
                                     if (!transceiver.rx_ongoing && !transceiver.tx_ongoing) {
                                         ensureTxMode();
@@ -138,7 +140,13 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                     }
                                     xSemaphoreGive(transceiver_handler.resources_mtx);
                                 }
-                            }
+                            // }
+                        }
+                        else {
+                            LOG_DEBUG << "[TX] TXFE NOT RECEIVED";
+                            transceiver.set_state(RF09, RF_TRXOFF, error);
+                            transceiver.chip_reset(error);
+                            transceiver.tx_ongoing = false;
                         }
                         break;
                     }

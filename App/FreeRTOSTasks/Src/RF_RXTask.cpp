@@ -109,7 +109,11 @@ void RF_RXTask::ensureRxMode() {
     uint32_t print_tx_ong = 0;
     uint32_t receivedEvents;
     State trx_state;
+    while (true) {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 
+    /*
     while (true) {
         if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_AGC, pdFALSE, pdTRUE, &receivedEvents, pdMS_TO_TICKS(RX_REFRESH_PERIOD_MS)) == pdTRUE) {
             if (receivedEvents & AGC_HOLD) {
@@ -223,4 +227,5 @@ void RF_RXTask::ensureRxMode() {
             xSemaphoreGive(transceiver_handler.resources_mtx);
         }
     }
+    */
 }
