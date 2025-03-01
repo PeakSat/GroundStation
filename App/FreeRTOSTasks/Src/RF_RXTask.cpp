@@ -110,11 +110,7 @@ void RF_RXTask::ensureRxMode() {
     uint32_t receivedEvents;
     State trx_state;
     while (true) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-
-    /*
-    while (true) {
+       while (true) {
         if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_AGC, pdFALSE, pdTRUE, &receivedEvents, pdMS_TO_TICKS(RX_REFRESH_PERIOD_MS)) == pdTRUE) {
             if (receivedEvents & AGC_HOLD) {
                 if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
@@ -140,11 +136,6 @@ void RF_RXTask::ensureRxMode() {
                     case READY: {
                         trx_state = transceiver.get_state(RF09, error);
                         if (trx_state != RF_RX) {
-                            // set the uplink frequency
-                            // transceiver.set_state(RF09, RF_TRXOFF, error);
-                            // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
-                            // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                            // transceiver.chip_reset(error);
                             ensureRxMode();
                         }
                         break;
@@ -227,5 +218,8 @@ void RF_RXTask::ensureRxMode() {
             xSemaphoreGive(transceiver_handler.resources_mtx);
         }
     }
-    */
 }
+
+    }
+
+

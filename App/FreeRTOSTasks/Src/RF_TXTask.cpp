@@ -120,6 +120,12 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
                                 transceiver.transmitBasebandPacketsTx(RF09, test_array, corrected_tx_length, error);
                                 LOG_INFO << "[TX] c: " << counter;
                                 transceiver.print_error(error);
+                                if (xSemaphoreTake(transceiver_handler.txfeSemaphore_tx, pdMS_TO_TICKS(200)) == pdTRUE) {
+                                    LOG_INFO << "[TX READY] TXFE RECEIVED " ;
+                                }
+                                else {
+                                    LOG_ERROR << "[TX READY] TXFE NOT RECEIVED ";
+                                }
                             }
                             xSemaphoreGive(transceiver_handler.resources_mtx);
                         }
