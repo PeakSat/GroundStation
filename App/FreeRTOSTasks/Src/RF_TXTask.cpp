@@ -3,7 +3,6 @@
 #include "Logger.hpp"
 #include <timers.h>
 #include "main.h"
-#define MAGIC_NUMBER 4
 
 void RF_TXTask::ensureTxMode() {
     State state = transceiver.get_state(RF09, error);
@@ -25,10 +24,9 @@ void RF_TXTask::ensureTxMode() {
         break;
         case RF_RX:
             transceiver.set_state(RF09, RF_TRXOFF, error);
-            // LOG_DEBUG << "[TX ENSURE] STATE: RX";
             break;
         case RF_TRANSITION:
-            vTaskDelay(10);
+            vTaskDelay(pdMS_TO_TICKS(20));
             LOG_DEBUG << "[TX ENSURE] STATE: TRANSITION";
         break;
         case RF_RESET:
@@ -36,15 +34,10 @@ void RF_TXTask::ensureTxMode() {
         break;
         case RF_INVALID:
             LOG_DEBUG << "[TX ENSURE] STATE: INVALID";
-            // HAL_GPIO_WritePin(RF_RST_GPIO_Port, RF_RST_Pin, GPIO_PIN_RESET);
-            // vTaskDelay(20);
-            // HAL_GPIO_WritePin(RF_RST_GPIO_Port, RF_RST_Pin, GPIO_PIN_SET);
-            // vTaskDelay(10);
             transceiver.set_state(RF09, RF_TRXOFF, error);
 
         break;
         case RF_TXPREP:
-            // LOG_DEBUG << "[TX ENSURE] STATE: TXPREP";
             transceiver.set_state(RF09, RF_TRXOFF, error);
         break;
         default:
@@ -61,8 +54,36 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
     return data;
 }
 
+void RF_TXTask::transmitWithWait(uint8_t* tx_buf, uint16_t length, uint16_t wait_ms_for_txfe, Error& error) {
+    ensureTxMode();
+    transceiver.transmitBasebandPacketsTx(RF09, tx_buf, length, error);
+    for (int i = 0; i < length; i++) {
+        __NOP();
+        // LOG_DEBUG << "[TX DATA] " << tx_buf[i];
+    }
+
+    if (xSemaphoreTake(transceiver_handler.txfeSemaphore_tx, pdMS_TO_TICKS(wait_ms_for_txfe)) == pdTRUE) {
+        txfe_counter++;
+        LOG_DEBUG << "[TX] TXFE: " << txfe_counter << " [TX] LENGTH: " << length - MAGIC_NUMBER;
+        LOG_DEBUG << "[TX] TXFE NOT RECEIVED: " << txfe_not_received;
+        LOG_DEBUG << "[TX] RXFE: " << rxfe_received << "[TX] RXFE NOT RECEIVED: " << rxfe_not_received; ;
+        transceiver.tx_ongoing = false;
+    }
+    else {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        txfe_not_received++;
+        // TODO : RESEND THE PACKET
+        LOG_ERROR << "[TX READY] TXFE **NOT** RECEIVED: " << txfe_not_received;
+        transceiver.set_state(RF09, RF_TRXOFF, error);
+        transceiver.chip_reset(error);
+        transceiver.tx_ongoing = false;
+        /// TODO: RESEND
+    }
+}
+
+
 [[noreturn]] void RF_TXTask::execute() {
-    vTaskDelay(8000);
+    vTaskDelay(pdMS_TO_TICKS(3000));
     PacketData packetTestData = createRandomPacketData(MaxPacketLength);
     StaticTimer_t xTimerBuffer;
     TimerHandle_t xTimer = xTimerCreateStatic(
@@ -101,91 +122,47 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
     uint16_t corrected_tx_length = size_test_array + MAGIC_NUMBER;
     LOG_DEBUG << "[TX] TX LENGTH: " << corrected_tx_length;
     while (true) {
-        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TRANSMIT, pdFALSE, pdTRUE, &receivedEventsTransmit, pdTICKS_TO_MS(10000)) == pdTRUE) {
-            if (receivedEventsTransmit & TRANSMIT) {
-                if (counter == 255)
-                    counter = 0;
-                if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
-                    state = (transceiver.rx_ongoing << 1) | transceiver.tx_ongoing;
-                    xSemaphoreGive(transceiver_handler.resources_mtx);
+        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TRANSMIT, pdFALSE, pdTRUE, &receivedEventsTransmit, portMAX_DELAY) == pdTRUE) {
+            if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
+                state = (transceiver.rx_ongoing << 1) | transceiver.tx_ongoing;
+                xSemaphoreGive(transceiver_handler.resources_mtx);
+            }
+            switch (state) {
+                case READY: {
+                    LOG_DEBUG << "[TX] READY";
+                    transmitWithWait(test_array, corrected_tx_length, 250, error);
+                    rf_rxtask->ensureRxMode();
+                    break;
                 }
-                switch (state) {
-                    case READY: {
-                        LOG_DEBUG << "[TX] READY";
-                        if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
-                            if (!transceiver.rx_ongoing && !transceiver.tx_ongoing) {
-                                ensureTxMode();
-                                counter++;
-                                packetTestData.packet[0] = counter;
-                                transceiver.transmitBasebandPacketsTx(RF09, test_array, corrected_tx_length, error);
-                                LOG_INFO << "[TX] c: " << counter;
-                                transceiver.print_error(error);
-                                if (xSemaphoreTake(transceiver_handler.txfeSemaphore_tx, pdMS_TO_TICKS(200)) == pdTRUE) {
-                                    LOG_INFO << "[TX READY] TXFE RECEIVED " ;
-                                }
-                                else {
-                                    LOG_ERROR << "[TX READY] TXFE NOT RECEIVED ";
-                                }
-                            }
-                            xSemaphoreGive(transceiver_handler.resources_mtx);
-                        }
-                        break;
+                case TX_ONG: {
+                    LOG_DEBUG << "[TX] TX_ONG";
+                    break;
+                }
+                case RX_ONG: {
+                    LOG_DEBUG << "[TX] RX_ONG";
+                    if (xSemaphoreTake(transceiver_handler.rxfeSemaphore_tx, pdMS_TO_TICKS(250))) {
+                        rxfe_received++;
+                        transmitWithWait(test_array, corrected_tx_length, 250, error);
                     }
-                    case TX_ONG: {
-                        uint32_t receivedEventsTXFE;
-                        LOG_DEBUG << "[TX] TXONG";
-                        if (xSemaphoreTake(transceiver_handler.txfeSemaphore_tx, pdMS_TO_TICKS(500))) {
-                            // if (receivedEventsTXFE & TXFE) {
-                                if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
-                                    if (!transceiver.rx_ongoing && !transceiver.tx_ongoing) {
-                                        ensureTxMode();
-                                        counter++;
-                                        packetTestData.packet[0] = counter;
-                                        transceiver.transmitBasebandPacketsTx(RF09, test_array, corrected_tx_length, error);
-                                        LOG_INFO << "[TX TXFE] c: " << counter;
-                                    }
-                                    xSemaphoreGive(transceiver_handler.resources_mtx);
-                                }
-                            // }
-                        }
-                        else {
-                            LOG_DEBUG << "[TX] TXFE NOT RECEIVED";
-                            transceiver.set_state(RF09, RF_TRXOFF, error);
-                            transceiver.chip_reset(error);
-                            transceiver.tx_ongoing = false;
-                        }
-                        break;
+                    else {
+                        rxfe_not_received++;
+                        transceiver.set_state(RF09, RF_TRXOFF, error);
+                        transceiver.chip_reset(error);
+                        transceiver.rx_ongoing = false;
+                        // TODO: Send it again
                     }
-                    case RX_ONG: {
-                        uint32_t receivedEventsRXFE;
-                        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_AGC_RELEASE, pdFALSE, pdTRUE, &receivedEventsRXFE, pdTICKS_TO_MS(1000)) == pdTRUE) {
-                            if (receivedEventsRXFE & AGC_RELEASE) {
-                                if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
-                                    if (!transceiver.rx_ongoing && !transceiver.tx_ongoing) {
-                                        ensureTxMode();
-                                        counter++;
-                                        packetTestData.packet[0] = counter;
-                                        transceiver.transmitBasebandPacketsTx(RF09, test_array, corrected_tx_length, error);
-                                        LOG_INFO << "[TX RXFE] c: " << counter;
-                                    }
-                                    xSemaphoreGive(transceiver_handler.resources_mtx);
-                                }
-                            }
-                        }
-                        break;
-                    }
-                    case RX_TX_ONG: {
-                        LOG_ERROR << "[TX] RXONG TXONG";
-                        break;
-                    }
-                    default: {
-                        LOG_ERROR << "[TX] Unknown state!";
-                        break;
-                    }
+                    rf_rxtask->ensureRxMode();
+                    break;
+                }
+                case RX_TX_ONG: {
+                    LOG_ERROR << "[TX] RXONG & TXONG";
+                    break;
+                }
+                default: {
+                    LOG_ERROR << "[TX] Unknown state!";
+                    break;
                 }
             }
-        }else {
-            LOG_ERROR << "[TX] Failed to get the event from the timer";
         }
     }
 }

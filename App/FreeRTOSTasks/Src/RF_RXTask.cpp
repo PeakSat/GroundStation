@@ -16,17 +16,14 @@ void RF_RXTask::ensureRxMode() {
             LOG_DEBUG << "[RX ENSURE] STATE: TRXOFF";
             transceiver.set_state(RF09, RF_TXPREP, error);
             /// the delay here is essential
-            vTaskDelay(20);
+            vTaskDelay(pdMS_TO_TICKS(20));
             transceiver.set_state(RF09, RF_RX, error);
             break;
         case RF_TX:
             LOG_DEBUG << "[RX ENSURE] STATE: TX";
-            // HAL_GPIO_WritePin(RF_RST_GPIO_Port, RF_RST_Pin, GPIO_PIN_RESET);
-            // vTaskDelay(20);
-            // HAL_GPIO_WritePin(RF_RST_GPIO_Port, RF_RST_Pin, GPIO_PIN_SET);
             transceiver.set_state(RF09, RF_TXPREP, error);
             /// the delay here is essential
-            vTaskDelay(20);
+            vTaskDelay(pdMS_TO_TICKS(20));
             transceiver.set_state(RF09, RF_RX, error);
             // transceiver.print_state(RF09, error);
             break;
@@ -40,15 +37,12 @@ void RF_RXTask::ensureRxMode() {
             LOG_DEBUG << "[RX ENSURE] STATE: RESET";
             break;
         case RF_INVALID:
-            // HAL_GPIO_WritePin(RF_RST_GPIO_Port, RF_RST_Pin, GPIO_PIN_RESET);
-            // vTaskDelay(20);
-            // HAL_GPIO_WritePin(RF_RST_GPIO_Port, RF_RST_Pin, GPIO_PIN_SET);
-            // vTaskDelay(10);
+            LOG_DEBUG << "[RX ENSURE] STATE: INVALID";
             transceiver.set_state(RF09, RF_TRXOFF, error);
-            vTaskDelay(10);
+            vTaskDelay(pdMS_TO_TICKS(20));
             transceiver.set_state(RF09, RF_TXPREP, error);
             /// the delay here is essential
-            vTaskDelay(20);
+            vTaskDelay(pdMS_TO_TICKS(20));
             transceiver.set_state(RF09, RF_RX, error);
             LOG_DEBUG << "[RX ENSURE] STATE: INVALID";
             transceiver.print_state(RF09, error);
@@ -64,10 +58,9 @@ void RF_RXTask::ensureRxMode() {
 }
 
 [[noreturn]] void RF_RXTask::execute() {
-    vTaskDelay(5000);
+    vTaskDelay(pdMS_TO_TICKS(1000));
     LOG_INFO << "[RF RX TASK]";
     transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
-    // transceiver.set_state(RF09, RF_TRXOFF, error);
     /// Check transceiver connection
     const int MAX_RETRIES = 3;
     int attempt = 0;
@@ -104,122 +97,66 @@ void RF_RXTask::ensureRxMode() {
         LOG_ERROR << "Failed to establish connection after " << MAX_RETRIES << " attempts.";
     }
     uint16_t received_length = 0;
-    uint8_t current_counter = 0;
-    uint32_t drop_counter = 0;
-    uint32_t print_tx_ong = 0;
+    uint32_t drop_counter = 0, rx_total_packets = 0, rx_total_drop_packets = 0;
     uint32_t receivedEvents;
-    State trx_state;
+    ensureRxMode();
     while (true) {
-       while (true) {
-        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_AGC, pdFALSE, pdTRUE, &receivedEvents, pdMS_TO_TICKS(RX_REFRESH_PERIOD_MS)) == pdTRUE) {
-            if (receivedEvents & AGC_HOLD) {
-                if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
-                    auto result = transceiver.get_received_length(RF09, error);
-                    received_length = result.value();
-                    if (received_length == 1024) {
-                        current_counter = transceiver.spi_read_8((BBC0_FBRXS), error);
-                        LOG_DEBUG << "[RX] c: " << current_counter;
-                        drop_counter = 0;
+        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_RXFE_RX, pdFALSE, pdTRUE, &receivedEvents, portMAX_DELAY) == pdTRUE) {
+            if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
+                auto result = transceiver.get_received_length(RF09, error);
+                received_length = result.value();
+                int16_t corrected_received_length = received_length - MAGIC_NUMBER;
+                int8_t rssi = transceiver.get_rssi(RF09, error);
+                uint8_t RX_BUFF[1024]{};
+                LOG_DEBUG << "[RX AGC] LENGTH: " << corrected_received_length;
+                if (rssi != 127)
+                    LOG_DEBUG << "[RX AGC] RSSI [dBm]: " << rssi ;
+                if (corrected_received_length > 0 && corrected_received_length <= 256) {
+                    rx_total_packets++;
+                    LOG_DEBUG << "[RX] total packets c: " << rx_total_packets;
+                    drop_counter = 0;
+                    for (int i = 0; i < corrected_received_length; i++) {
+                        RX_BUFF[i] = transceiver.spi_read_8((BBC0_FBRXS) + i, error);
+                        // LOG_DEBUG << "[RX] DATA: " << RX_BUFF[i];
+                        if (error != NO_ERRORS)
+                            LOG_ERROR << "ERROR" ;
+                    }
+                    /// TODO: parse the packet because it could be a TM if we are on the COMMS-GS or TC if we are on the COMMS-GS side
+                    uint8_t packet_version_number = (RX_BUFF[0] >> 5) & 0x07;  // Top 3 bits
+                    uint8_t packet_type = (RX_BUFF[0] >> 4) & 0x01;            // 4th bit
+                    uint8_t secondary_header_flag = (RX_BUFF[0] >> 3) & 0x01;  // 5th bit
+                    uint16_t application_process_ID = ((RX_BUFF[0] & 0x07) << 8) | RX_BUFF[1];  // Last 3 bits + full RX_BUFF[1]
+
+                    LOG_DEBUG << "Packet Version Number: " << packet_version_number ;
+                    LOG_DEBUG << "Packet Type: " << packet_type;
+                    LOG_DEBUG << "Secondary Header Flag: " << secondary_header_flag;
+                    LOG_DEBUG << "Application Process ID: " << application_process_ID;
+
+                    if (packet_type == TM_PACKET) {
+                        LOG_DEBUG << "[RX] TM RECEIVED" ;
+                    }
+                    else if (packet_type == TC_PACKET) {
+                        LOG_DEBUG << "[RX AGC] NEW TC FROM COMMS-GS";
                     }
                     else {
-                        drop_counter++;
-                        LOG_DEBUG << "[RX DROP] c: " << drop_counter;
-                    }+
-
-                    xSemaphoreGive(transceiver_handler.resources_mtx);
+                        LOG_DEBUG << "[RX AGC] Neither TC nor TM";
+                    }
+                    /// TODO: if the packet is TM print it with the format: New TM [3,25] ... call the TM_HandlingTask
                 }
-            }
-        }
-        else {
-            if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
-                switch (uint8_t rf_state = (transceiver.rx_ongoing << 1) | transceiver.tx_ongoing) {
-                    case READY: {
-                        trx_state = transceiver.get_state(RF09, error);
-                        if (trx_state != RF_RX) {
-                            ensureRxMode();
-                        }
-                        break;
-                    }
-                    case TX_ONG: {
-                        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TXFE_RX, pdFALSE, pdTRUE, &receivedEvents, pdMS_TO_TICKS(1000)) == pdTRUE) {
-                            if (receivedEvents & TXFE) {
-                                ensureRxMode();
-                                LOG_INFO << "[RX] TXFE";
-                            }
-                        }
-                        else {
-                            LOG_ERROR << "[RX] TXFE NOT RECEIVED";
-                            // DEADLOCK HANDLING
-                            transceiver.print_error(error);
-                            transceiver.print_state(RF09, error);
-                            transceiver.set_state(RF09, RF_TRXOFF, error);
-                            transceiver.chip_reset(error);
-                            transceiver.print_error(error);
-                            transceiver.tx_ongoing = false;
-                            ensureRxMode();
-                        }
-                        break;
-                    }
-                    case RX_ONG: {
-                        if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_RXFE_RX, pdFALSE, pdTRUE, &receivedEvents, pdMS_TO_TICKS(1000))) {
-                            if (receivedEvents &  RXFE_RX) {
-                                trx_state = transceiver.get_state(RF09, error);
-                                if (trx_state != RF_RX) {
-                                    // set the uplink frequency
-                                    // transceiver.set_state(RF09, RF_TRXOFF, error);
-                                    // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
-                                    // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                                    // transceiver.chip_reset(error);
-                                    ensureRxMode();
-                                }
-                            }
-                        }
-                        trx_state = transceiver.get_state(RF09, error);
-                        if (trx_state != RF_RX) {
-                            // set the uplink frequency
-                            // transceiver.set_state(RF09, RF_TRXOFF, error);
-                            // transceiver.freqSynthesizerConfig.setFrequency_FineResolution_CMN_1(FrequencyUHFRX);
-                            // transceiver.configure_pll(RF09, transceiver.freqSynthesizerConfig.channelCenterFrequency09, transceiver.freqSynthesizerConfig.channelNumber09, transceiver.freqSynthesizerConfig.channelMode09, transceiver.freqSynthesizerConfig.loopBandwidth09, transceiver.freqSynthesizerConfig.channelSpacing09, error);
-                            // transceiver.chip_reset(error);
-                            ensureRxMode();
-                        }
-                        break;
-                    }
-                    case RX_TX_ONG: {
-                        LOG_DEBUG << "[RX] RXONG AND TXONG";
-                        break;
-                    }
-                    default: {
-                        LOG_ERROR << "[RX] UNEXPECTED CASE";
-                        break;
-                    }
+                else {
+                    vTaskDelay(pdMS_TO_TICKS(200));
+                    drop_counter++;
+                    rx_total_drop_packets++;
+                    LOG_DEBUG << "[RX DROP] c: " << drop_counter;
+                    LOG_DEBUG << "[RX DROP] total packets c: " << rx_total_drop_packets;
+                    ensureRxMode();
                 }
+                ensureRxMode();
+                xSemaphoreGive(transceiver_handler.resources_mtx);
             }
-            if (transceiver.TransceiverError_flag) {
-                transceiver.TransceiverError_flag = false;
-                LOG_ERROR << "[RX] Transceiver Error";
-            }
-            if (transceiver.FrameBufferLevelIndication_flag) {
-                transceiver.FrameBufferLevelIndication_flag = false;
-                LOG_ERROR << "[RX] FrameBuffer Level Indication";
-            }
-            if (transceiver.IFSynchronization_flag) {
-                transceiver.IFSynchronization_flag = false;
-                LOG_ERROR << "[RX] IF Synchronization";
-            }
-            if (transceiver.Voltage_Drop) {
-                transceiver.Voltage_Drop = false;
-                LOG_ERROR << "[RX] Voltage Drop";
-            }
-            if (transceiver.TransmitterFrameEnd_flag) {
-                transceiver.TransmitterFrameEnd_flag = false;
-                LOG_INFO << "[RX] Transceiver FRAME END";
-            }
-            xSemaphoreGive(transceiver_handler.resources_mtx);
         }
     }
 }
 
-    }
 
 
