@@ -125,43 +125,44 @@ void RF_TXTask::transmitWithWait(uint8_t* tx_buf, uint16_t length, uint16_t wait
         if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TRANSMIT, pdFALSE, pdTRUE, &receivedEventsTransmit, portMAX_DELAY) == pdTRUE) {
             if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
                 state = (transceiver.rx_ongoing << 1) | transceiver.tx_ongoing;
-                xSemaphoreGive(transceiver_handler.resources_mtx);
-            }
-            switch (state) {
-                case READY: {
-                    LOG_DEBUG << "[TX] READY";
-                    transmitWithWait(test_array, corrected_tx_length, 250, error);
-                    rf_rxtask->ensureRxMode();
-                    break;
-                }
-                case TX_ONG: {
-                    LOG_DEBUG << "[TX] TX_ONG";
-                    break;
-                }
-                case RX_ONG: {
-                    LOG_DEBUG << "[TX] RX_ONG";
-                    if (xSemaphoreTake(transceiver_handler.rxfeSemaphore_tx, pdMS_TO_TICKS(250))) {
-                        rxfe_received++;
+                switch (state) {
+                    case READY: {
+                        LOG_DEBUG << "[TX] READY";
                         transmitWithWait(test_array, corrected_tx_length, 250, error);
+                        rf_rxtask->ensureRxMode();
+                        break;
                     }
-                    else {
-                        rxfe_not_received++;
-                        transceiver.set_state(RF09, RF_TRXOFF, error);
-                        transceiver.chip_reset(error);
-                        transceiver.rx_ongoing = false;
-                        // TODO: Send it again
+                    case TX_ONG: {
+                        LOG_DEBUG << "[TX] TX_ONG";
+                        break;
                     }
-                    rf_rxtask->ensureRxMode();
-                    break;
+                    case RX_ONG: {
+                        LOG_DEBUG << "[TX] RX_ONG";
+                        if (xSemaphoreTake(transceiver_handler.rxfeSemaphore_tx, pdMS_TO_TICKS(250))) {
+                            rxfe_received++;
+                            transmitWithWait(test_array, corrected_tx_length, 250, error);
+                            transceiver.rx_ongoing = false;
+                        }
+                        else {
+                            rxfe_not_received++;
+                            transceiver.set_state(RF09, RF_TRXOFF, error);
+                            transceiver.chip_reset(error);
+                            transceiver.rx_ongoing = false;
+                            // TODO: Send it again
+                        }
+                        rf_rxtask->ensureRxMode();
+                        break;
+                    }
+                    case RX_TX_ONG: {
+                        LOG_ERROR << "[TX] RXONG & TXONG";
+                        break;
+                    }
+                    default: {
+                        LOG_ERROR << "[TX] Unknown state!";
+                        break;
+                    }
                 }
-                case RX_TX_ONG: {
-                    LOG_ERROR << "[TX] RXONG & TXONG";
-                    break;
-                }
-                default: {
-                    LOG_ERROR << "[TX] Unknown state!";
-                    break;
-                }
+                xSemaphoreGive(transceiver_handler.resources_mtx);
             }
         }
     }

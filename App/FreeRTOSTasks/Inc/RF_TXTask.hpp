@@ -33,7 +33,7 @@ public:
                                              this->taskStack, &(this->taskBuffer));
     }
 private:
-    constexpr static uint16_t TaskStackDepth = 5000;
+    constexpr static uint16_t TaskStackDepth = 10000;
     /// Frequency in kHz
     constexpr static uint32_t FrequencyUHFTX = 401000;
     Error error = NO_ERRORS;

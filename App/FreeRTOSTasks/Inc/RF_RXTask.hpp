@@ -8,9 +8,6 @@
 #include <etl/expected.h>
 #include "main.h"
 
-#define RX_REFRESH_PERIOD_MS 20
-
-
 using namespace AT86RF215;
 class RF_RXTask : public Task {
 public:
@@ -19,12 +16,12 @@ public:
     [[noreturn]] void execute();
     void createTask() {
         this->taskHandle = xTaskCreateStatic(vClassTask<RF_RXTask>, this->TaskName,
-                                             this->TaskStackDepth, this, tskIDLE_PRIORITY + 1,
+                                             this->TaskStackDepth, this, tskIDLE_PRIORITY + 2,
                                              this->taskStack, &(this->taskBuffer));
     }
 
 private:
-    constexpr static uint16_t TaskStackDepth = 5000;
+    constexpr static uint16_t TaskStackDepth = 10000;
     /// Frequency in kHz
     constexpr static uint32_t FrequencyUHFRX = 401000;
     Error error = NO_ERRORS;
