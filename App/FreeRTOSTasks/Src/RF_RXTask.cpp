@@ -99,6 +99,7 @@ void RF_RXTask::ensureRxMode() {
     uint16_t received_length = 0;
     uint32_t drop_counter = 0, rx_total_packets = 0, rx_total_drop_packets = 0;
     uint32_t receivedEvents;
+
     ensureRxMode();
     while (true) {
         if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_RXFE_RX, pdFALSE, pdTRUE, &receivedEvents, portMAX_DELAY) == pdTRUE) {

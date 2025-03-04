@@ -117,18 +117,31 @@ void RF_TXTask::transmitWithWait(uint8_t* tx_buf, uint16_t length, uint16_t wait
     uint32_t receivedEventsTransmit;
     // TODO add the rest of TCs
     // Are you alive TC [17,1]
-    uint8_t test_array[] = {24, 1, 192, 10, 0, 5, 47, 17, 1, 2, 5};
-    size_t size_test_array = sizeof(test_array) / sizeof(test_array[0]);
-    uint16_t corrected_tx_length = size_test_array + MAGIC_NUMBER;
-    LOG_DEBUG << "[TX] TX LENGTH: " << corrected_tx_length;
+    uint8_t test_array_are_you_alive[] = {24, 1, 192, 10, 0, 5, 47, 17, 1, 0, 5};
+    // uint8_t test_array_one_shot[] = {24, 1, 192, 10, 0, 5, 47, 3, 27, 3, 5, 1};
+    uint8_t test_array_one_shot[] = {24, 1, 192, 10, 0, 5, 47, 3, 27, 3, 5, 1};
+
+    size_t size_test_array_are_you_alive = sizeof(test_array_are_you_alive) / sizeof(test_array_are_you_alive[0]);
+    size_t size_test_array_one_shot = sizeof(test_array_are_you_alive) / sizeof(test_array_are_you_alive[0]);
+    uint16_t corrected_tx_length_are_you_alive = size_test_array_are_you_alive + MAGIC_NUMBER;
+    uint16_t corrected_tx_length_one_shot = size_test_array_one_shot + MAGIC_NUMBER;
+    uint32_t switch_counter = 0;
     while (true) {
         if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TRANSMIT, pdFALSE, pdTRUE, &receivedEventsTransmit, portMAX_DELAY) == pdTRUE) {
+            switch_counter++;
             if (xSemaphoreTake(transceiver_handler.resources_mtx, portMAX_DELAY) == pdTRUE) {
                 state = (transceiver.rx_ongoing << 1) | transceiver.tx_ongoing;
                 switch (state) {
                     case READY: {
                         LOG_DEBUG << "[TX] READY";
-                        transmitWithWait(test_array, corrected_tx_length, 250, error);
+                        if (switch_counter % 2 == 0) {
+                            LOG_DEBUG << "[TX] READY: sending TC[3,27]...";
+                            transmitWithWait(test_array_one_shot, corrected_tx_length_one_shot, 250, error);
+                        }
+                        else {
+                            LOG_DEBUG << "[TX] READY: sending TC[17,1] to OBC...";
+                            transmitWithWait(test_array_are_you_alive, corrected_tx_length_are_you_alive, 250, error);
+                        }
                         rf_rxtask->ensureRxMode();
                         break;
                     }
@@ -140,7 +153,14 @@ void RF_TXTask::transmitWithWait(uint8_t* tx_buf, uint16_t length, uint16_t wait
                         LOG_DEBUG << "[TX] RX_ONG";
                         if (xSemaphoreTake(transceiver_handler.rxfeSemaphore_tx, pdMS_TO_TICKS(250))) {
                             rxfe_received++;
-                            transmitWithWait(test_array, corrected_tx_length, 250, error);
+                            if (switch_counter % 2 == 0) {
+                                LOG_DEBUG << "[TX] READY: sending TC[3,27]...";
+                                transmitWithWait(test_array_one_shot, corrected_tx_length_one_shot, 250, error);
+                            }
+                            else {
+                                LOG_DEBUG << "[TX] READY: sending TC[17,1] to OBC...";
+                                transmitWithWait(test_array_are_you_alive, corrected_tx_length_are_you_alive, 250, error);
+                            }
                             transceiver.rx_ongoing = false;
                         }
                         else {
