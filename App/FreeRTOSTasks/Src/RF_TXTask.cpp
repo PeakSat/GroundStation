@@ -35,7 +35,6 @@ void RF_TXTask::ensureTxMode() {
         case RF_INVALID:
             LOG_DEBUG << "[TX ENSURE] STATE: INVALID";
             transceiver.set_state(RF09, RF_TRXOFF, error);
-
         break;
         case RF_TXPREP:
             transceiver.set_state(RF09, RF_TRXOFF, error);
@@ -56,18 +55,32 @@ PacketData RF_TXTask::createRandomPacketData(uint16_t length) {
 
 void RF_TXTask::transmitWithWait(uint8_t* tx_buf, uint16_t length, uint16_t wait_ms_for_txfe, Error& error) {
     ensureTxMode();
-    transceiver.transmitBasebandPacketsTx(RF09, tx_buf, length, error);
+    uint32_t crc_value;
+    uint8_t local_tx_buf[length];
     for (int i = 0; i < length; i++) {
-        __NOP();
-        // LOG_DEBUG << "[TX DATA] " << tx_buf[i];
+        local_tx_buf[i] = tx_buf[i];
     }
-
+    crc_value = HAL_CRC_Calculate(&hcrc, reinterpret_cast<uint32_t*>(local_tx_buf), length);
+    LOG_DEBUG << "[TX]: CRC TRANSMIT: " << crc_value;
+    local_tx_buf[length] = static_cast<uint8_t>(crc_value & 0xFF);          // 0x78
+    local_tx_buf[length + 1] = static_cast<uint8_t>((crc_value >> 8)  & 0xFF);  // 0x56
+    local_tx_buf[length + 2] = static_cast<uint8_t>((crc_value >> 16) & 0xFF);  // 0x34
+    local_tx_buf[length + 3] = static_cast<uint8_t>((crc_value >> 24) & 0xFF);  // 0x12
+    uint16_t length_with_crc = length + 4;
+    for (int i = 0 ; i < length_with_crc; i++) {
+        LOG_DEBUG << local_tx_buf[i];
+    }
+    transceiver.transmitBasebandPacketsTx(RF09, local_tx_buf, length_with_crc  + MAGIC_NUMBER, error);
     if (xSemaphoreTake(transceiver_handler.txfeSemaphore_tx, pdMS_TO_TICKS(wait_ms_for_txfe)) == pdTRUE) {
         txfe_counter++;
-        LOG_DEBUG << "[TX] TXFE: " << txfe_counter << " [TX] LENGTH: " << length - MAGIC_NUMBER;
+        LOG_DEBUG << "[TX] TXFE: " << txfe_counter << " [TX] LENGTH: " << length_with_crc;
         LOG_DEBUG << "[TX] TXFE NOT RECEIVED: " << txfe_not_received;
         LOG_DEBUG << "[TX] RXFE: " << rxfe_received << "[TX] RXFE NOT RECEIVED: " << rxfe_not_received; ;
         transceiver.tx_ongoing = false;
+        // for (int i = 0; i < length_with_crc; i++) {
+        //     __NOP();
+        //     LOG_DEBUG << "[TX]: " << tx_buf[i];
+        // }
     }
     else {
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -84,7 +97,6 @@ void RF_TXTask::transmitWithWait(uint8_t* tx_buf, uint16_t length, uint16_t wait
 
 [[noreturn]] void RF_TXTask::execute() {
     vTaskDelay(pdMS_TO_TICKS(3000));
-    PacketData packetTestData = createRandomPacketData(MaxPacketLength);
     StaticTimer_t xTimerBuffer;
     TimerHandle_t xTimer = xTimerCreateStatic(
         "Transmit Timer",
@@ -113,18 +125,17 @@ void RF_TXTask::transmitWithWait(uint8_t* tx_buf, uint16_t length, uint16_t wait
     else
         LOG_ERROR << "[TX] null timer";
     uint8_t state = 0;
-    uint8_t counter = 0;
     uint32_t receivedEventsTransmit;
     // TODO add the rest of TCs
     // Are you alive TC [17,1]
-    uint8_t test_array_are_you_alive[] = {24, 1, 192, 10, 0, 5, 47, 17, 1, 0, 5};
-    // uint8_t test_array_one_shot[] = {24, 1, 192, 10, 0, 5, 47, 3, 27, 3, 5, 1};
-    uint8_t test_array_one_shot[] = {24, 1, 192, 10, 0, 5, 47, 3, 27, 3, 5, 1};
+    uint8_t test_array_are_you_alive[11] = {24, 1, 192, 10, 0, 5, 47, 17, 1, 0, 5};
+    uint8_t test_array_one_shot[12] = {24, 1, 192, 10, 0, 5, 47, 3, 27, 3, 5, 1};
+    // uint8_t test_array_one_shot[] = {24, 1, 192, 10, 0, 5, 47, 17, 1, 0, 5};
 
     size_t size_test_array_are_you_alive = sizeof(test_array_are_you_alive) / sizeof(test_array_are_you_alive[0]);
-    size_t size_test_array_one_shot = sizeof(test_array_are_you_alive) / sizeof(test_array_are_you_alive[0]);
-    uint16_t corrected_tx_length_are_you_alive = size_test_array_are_you_alive + MAGIC_NUMBER;
-    uint16_t corrected_tx_length_one_shot = size_test_array_one_shot + MAGIC_NUMBER;
+    size_t size_test_array_one_shot = sizeof(test_array_one_shot) / sizeof(test_array_one_shot[0]);
+    uint16_t corrected_tx_length_are_you_alive = 11;
+    uint16_t corrected_tx_length_one_shot = 12;
     uint32_t switch_counter = 0;
     while (true) {
         if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_TRANSMIT, pdFALSE, pdTRUE, &receivedEventsTransmit, portMAX_DELAY) == pdTRUE) {
@@ -136,11 +147,13 @@ void RF_TXTask::transmitWithWait(uint8_t* tx_buf, uint16_t length, uint16_t wait
                         LOG_DEBUG << "[TX] READY";
                         if (switch_counter % 2 == 0) {
                             LOG_DEBUG << "[TX] READY: sending TC[3,27]...";
-                            transmitWithWait(test_array_one_shot, corrected_tx_length_one_shot, 250, error);
+                            uint8_t* buff_pointer = test_array_one_shot;
+                            transmitWithWait(buff_pointer, size_test_array_one_shot, 250, error);
                         }
                         else {
                             LOG_DEBUG << "[TX] READY: sending TC[17,1] to OBC...";
-                            transmitWithWait(test_array_are_you_alive, corrected_tx_length_are_you_alive, 250, error);
+                            uint8_t* buff_pointer = test_array_are_you_alive;
+                            transmitWithWait(buff_pointer, size_test_array_are_you_alive, 250, error);
                         }
                         rf_rxtask->ensureRxMode();
                         break;

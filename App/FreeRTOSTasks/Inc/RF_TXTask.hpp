@@ -1,4 +1,6 @@
 #pragma once
+#include <stm32h7xx_hal.h>
+
 #include "Task.hpp"
 #include "task.h"
 #include "at86rf215.hpp"
@@ -8,6 +10,7 @@
 #define TX_TRANSMIT 2000
 #define MaxPacketLength 128
 
+extern CRC_HandleTypeDef hcrc;
 
 using namespace AT86RF215;
 
