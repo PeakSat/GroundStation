@@ -77,10 +77,6 @@ void RF_TXTask::transmitWithWait(uint8_t* tx_buf, uint16_t length, uint16_t wait
         LOG_DEBUG << "[TX] TXFE NOT RECEIVED: " << txfe_not_received;
         LOG_DEBUG << "[TX] RXFE: " << rxfe_received << "[TX] RXFE NOT RECEIVED: " << rxfe_not_received; ;
         transceiver.tx_ongoing = false;
-        // for (int i = 0; i < length_with_crc; i++) {
-        //     __NOP();
-        //     LOG_DEBUG << "[TX]: " << tx_buf[i];
-        // }
     }
     else {
         vTaskDelay(pdMS_TO_TICKS(1000));
