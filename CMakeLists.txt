@@ -39,6 +39,8 @@ message("Build type: " ${CMAKE_BUILD_TYPE})
 add_subdirectory(cmake/stm32cubemx)
 # Add the AT Drivers
 add_subdirectory(Drivers/AT86RF215)
+#
+add_subdirectory(Drivers/CAN)
 # Add the FreeRTOS
 add_subdirectory(Lib/FreeRTOS)
 #

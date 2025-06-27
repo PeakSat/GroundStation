@@ -100,14 +100,19 @@ void RF_TXTask::transmitWithWait(uint8_t* tx_buf, uint16_t length, uint16_t wait
         pdTRUE,
         (void *)1,
         [](TimerHandle_t pxTimer) {
-            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-            xTaskNotifyIndexedFromISR(
-                rf_txtask->taskHandle,
-                NOTIFY_INDEX_TRANSMIT,
-                TRANSMIT,
-                eSetBits,
-                &xHigherPriorityTaskWoken);
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            // Retrieve the timer ID
+            uintptr_t timerID = (uintptr_t)pvTimerGetTimerID(pxTimer);
+            if (timerID == 1) {
+                BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+                xTaskNotifyIndexedFromISR(
+               rf_txtask->taskHandle,
+               NOTIFY_INDEX_TRANSMIT,
+               TRANSMIT,
+               eSetBits,
+               &xHigherPriorityTaskWoken);
+           portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            }
+
         },
         &xTimerBuffer);
 
