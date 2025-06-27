@@ -13,13 +13,13 @@ uint16_t TPProtocol::parseMessage(TPMessage& tp_message, Message& message, uint1
     uint16_t spacecraft_error_code = 1;
     switch (uint8_t messageType = static_cast<Application::MessageIDs>(tp_message.data[0])) {
         case Application::OperationalMode:
-            Application::parseOperationalModeMessage(tp_message);
+            // Application::parseOperationalModeMessage(tp_message);
             break;
         case Application::SendParameters:
-            spacecraft_error_code = Application::parseSendParametersMessage(tp_message);
+            // spacecraft_error_code = Application::parseSendParametersMessage(tp_message);
             break;
         case Application::RequestParameters:
-            spacecraft_error_code = Application::parseRequestParametersMessage(tp_message, retries);
+            // spacecraft_error_code = Application::parseRequestParametersMessage(tp_message, retries);
             break;
         case Application::TMPacket:
             Application::parseTMMessage(tp_message);
@@ -38,7 +38,7 @@ uint16_t TPProtocol::parseMessage(TPMessage& tp_message, Message& message, uint1
             break;
         }
         case Application::PingSubsystem: {
-            spacecraft_error_code = Application::pingCOMMSSubsystem(tp_message, retries);
+            // spacecraft_error_code = Application::pingCOMMSSubsystem(tp_message, retries);
             break;
         }
         case Application::LogMessage: {
@@ -73,16 +73,16 @@ uint16_t TPProtocol::createCANTPMessage(TPMessage& tp_message, localPacketHandle
     if (xSemaphoreTake(canHandler.getTransmitMutex(), pdMS_TO_TICKS(canHandler.getTransmitTimeout())) == pdFALSE) {
         return 0;
     }
-    bool recovered = false;
-    uint16_t breakerError = CANBreaker(tp_message, response, recovered);
-    if (breakerError != 1) {
-        if (recovered == true) {
-            xSemaphoreGive(canHandler.getTransmitMutex());
-            return 1;
-        }
-        xSemaphoreGive(canHandler.getTransmitMutex());
-        return breakerError;
-    }
+    // bool recovered = false;
+    // uint16_t breakerError = CANBreaker(tp_message, response, recovered);
+    // if (breakerError != 1) {
+    //     if (recovered == true) {
+    //         xSemaphoreGive(canHandler.getTransmitMutex());
+    //         return 1;
+    //     }
+    //     xSemaphoreGive(canHandler.getTransmitMutex());
+    //     return breakerError;
+    // }
 
     // try sending message
     auto error = createCANTPMessageWithRetry(tp_message, response, message, retries);

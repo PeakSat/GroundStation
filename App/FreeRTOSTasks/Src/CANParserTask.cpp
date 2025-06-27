@@ -5,7 +5,7 @@
 
 
 uint16_t CANParserTask::sendACK(CAN::Application::MessageIDs ID) {
-    CAN::TPMessage ACKmessage = {{0, 0, CAN::NodeID, CAN::NodeIDs::OBC, false}}; //{{CAN::NodeID, CAN::NodeIDs::OBC, false}};
+    CAN::TPMessage ACKmessage = {{0, 0, CAN::NodeID, CAN::NodeIDs::TTC, false}}; //{{CAN::NodeID, CAN::NodeIDs::OBC, false}};
     ACKmessage.appendUint8(CAN::Application::MessageIDs::ACK);
     etl::array<uint8_t, CAN::MaxPayloadLength> data = {
         static_cast<uint8_t>(((CAN::TPProtocol::Single << 6) & 0xFF) | (1 & 0b111111))};
@@ -44,7 +44,7 @@ uint16_t CANParserTask::handlePacket(const localPacketHandler& CANPacketHandler,
     for (int i = 0; i < CANPacketHandler.PacketSize; i++) {
         tp_message.appendUint8(CANPacketHandler.Buffer[i]);
     }
-    tp_message.idInfo.sourceAddress = CAN::OBC;
+    tp_message.idInfo.sourceAddress = CAN::TTC;
     Message default_message{};
     return CAN::TPProtocol::parseMessage(tp_message, default_message, CANPacketHandler.PacketSize, retries);
 }

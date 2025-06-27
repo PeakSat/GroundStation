@@ -173,7 +173,7 @@ void CANGatekeeperTask::execute() {
             xQueueReceive(incomingFrameQueue, &in_frame_handler, pdMS_TO_TICKS(100));
 
             IdInfo identifier = CAN::TPMessage::decodeId(in_frame_handler.header.Identifier);
-            if (identifier.destinationAddress == CAN::TTC && identifier.sourceAddress == CAN::OBC) {
+            if (identifier.destinationAddress == CAN::TTC && identifier.sourceAddress == CAN::LOGGER) {
                 localPacketHandler* CANPacketHandler = &CAN1PacketHandler;
                 uint16_t spacecraft_error_code = 1;
                 if (in_frame_handler.bus->Instance == FDCAN1)

@@ -21,6 +21,10 @@ void app_main( void )
     tcHandlingTask.emplace();
     tcHandlingTask->createTask();
     uartGatekeeperTask->createTask();
+    canGatekeeperTask.emplace();
+    canGatekeeperTask->createTask();
+    canParserTask.emplace();
+    canParserTask->createTask();
 
     /* Start the scheduler. */
     vTaskStartScheduler();
@@ -70,7 +74,7 @@ extern "C" void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t 
                 } else if (newFrame.bus->Instance == FDCAN2) {
                     __NOP();
                 }
-            } else if (identifier.destinationAddress == CAN::TTC && identifier.sourceAddress == CAN::OBC) {
+            } else if (identifier.destinationAddress == CAN::LOGGER && identifier.sourceAddress == CAN::TTC) {
                 if (xQueueIsQueueFullFromISR(canGatekeeperTask->incomingFrameQueue)) {
                     // REPORT_ERROR_WITH_CONTEXT(TTC_ERROR_INCOMING_CAN_QUEUE_TTC_OBC_FULL, true, 0)
                 } else {
@@ -101,7 +105,7 @@ extern "C" void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t S
 
 
     // UART4
-    if (huart->Instance == UART4) {
+    if (huart->Instance == USART3) {
         auto currentsTCBufferTailPointer = static_cast<uint32_t>(Size);
 
         if (huart->RxEventType == HAL_UART_RXEVENT_IDLE) {

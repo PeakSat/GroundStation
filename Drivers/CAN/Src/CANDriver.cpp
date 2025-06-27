@@ -132,9 +132,9 @@ uint16_t CAN::send(const CAN::Packet& message, CAN::ActiveBus outgoingBus) {
     // Helper
     bool which_can = false;
     IdInfo identifier = TPMessage::decodeId(message.id);
-    if (outgoingBus == Main && identifier.destinationAddress == OBC) {
+    if (outgoingBus == Main && identifier.destinationAddress == TTC) {
         hal_status = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &CAN::txHeader, txFifo.data());
-    } else if (identifier.destinationAddress == OBC) {
+    } else if (identifier.destinationAddress == TTC) {
         hal_status = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &CAN::txHeader, txFifo.data());
         which_can = true;
     } else {

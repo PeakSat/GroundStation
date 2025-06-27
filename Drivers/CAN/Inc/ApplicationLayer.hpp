@@ -99,9 +99,6 @@ namespace CAN::Application {
      */
     uint16_t sendPongMessage(uint8_t retries);
 
-    uint16_t pingCOMMSSubsystem(TPMessage& message, uint8_t retries);
-    uint16_t parseOperationalModeMessage(const TPMessage& message);
-
     /**
      * Adds a Heartbeat message to the outgoing queue, to be called periodically, according to DDJF_OBDH.
      */
