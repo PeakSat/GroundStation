@@ -12,8 +12,8 @@ bool ACKReceived = false;
 
 struct incomingFIFO incomingFIFO;
 
-localPacketHandler CAN1PacketHandler __attribute__((section(".dtcmram_data_CAN1PacketHandler")));
-localPacketHandler CAN2PacketHandler __attribute__((section(".dtcmram_data_CAN2PacketHandler")));
+localPacketHandler CAN1PacketHandler;
+localPacketHandler CAN2PacketHandler;
 localPacketHandler* responsePointer = nullptr;
 
 void CANGatekeeperTask::printActiveBus() const {
@@ -173,7 +173,7 @@ void CANGatekeeperTask::execute() {
             xQueueReceive(incomingFrameQueue, &in_frame_handler, pdMS_TO_TICKS(100));
 
             IdInfo identifier = CAN::TPMessage::decodeId(in_frame_handler.header.Identifier);
-            if (identifier.destinationAddress == CAN::TTC && identifier.sourceAddress == CAN::LOGGER) {
+            if (identifier.sourceAddress == CAN::TTC) {
                 localPacketHandler* CANPacketHandler = &CAN1PacketHandler;
                 uint16_t spacecraft_error_code = 1;
                 if (in_frame_handler.bus->Instance == FDCAN1)

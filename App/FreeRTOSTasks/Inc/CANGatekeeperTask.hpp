@@ -102,12 +102,12 @@ struct FrameMetadata {
 };
 
 //
-static inline uint8_t incomingFrameQueueStorageArea[sizeOfIncommingFrameBuffer * sizeof(CAN::Frame)] __attribute__((section(".dtcmram_data_incomingFrameQueueStorageArea")));
+static inline uint8_t incomingFrameQueueStorageArea[sizeOfIncommingFrameBuffer * sizeof(CAN::Frame)];
 static const uint8_t PacketQueueSize = 40;
-static inline uint8_t outgoingQueueStorageArea[PacketQueueSize * sizeof(CAN::Packet)] __attribute__((section(".dtcmram_data_outgoingQueueStorageArea")));
+static inline uint8_t outgoingQueueStorageArea[PacketQueueSize * sizeof(CAN::Packet)];
 
 static const uint8_t incomingPacketQueueSize = 3;
-static inline uint8_t incomingPacketQueueStorageArea[incomingPacketQueueSize * sizeof(localPacketHandler)] __attribute__((section(".dtcmram_data_incomingPacketQueueStorageArea")));
+static inline uint8_t incomingPacketQueueStorageArea[incomingPacketQueueSize * sizeof(localPacketHandler)];
 
 inline uint8_t incomingBuffer[CANMessageSize * sizeOfIncommingFrameBuffer];
 
@@ -125,15 +125,11 @@ public:
      * FreeRTOS queues
      */
 
-    QueueHandle_t outgoingADCSQueue;
-    QueueHandle_t incomingADCSQueue;
     QueueHandle_t incomingFrameQueue;
     /**
      * The variables used to hold the queue's data structure.
      */
     static inline StaticQueue_t outgoingQueueBuffer;
-    static inline StaticQueue_t outgoingADCSQueueBuffer;
-    static inline StaticQueue_t incomingADCSQueueBuffer;
     static inline StaticQueue_t incomingPacketQueueBuffer;
     static inline StaticQueue_t incomingFrameQueueBuffer;
 
