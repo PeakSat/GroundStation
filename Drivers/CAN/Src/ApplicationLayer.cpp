@@ -36,84 +36,10 @@ namespace CAN::Application {
                 return 0;
             if (status == HAL_BUSY)
                 return 0;
-            return GENERIC_ERROR_UNKNOWN;
-        }
-        return GENERIC_ERROR_NONE;
-    }
-
-    uint16_t EPSReadRegisterThroughCAN(TPMessage& message, uint8_t retries, uint16_t ms_i2c_timeout) {
-        uint16_t size = message.data[1];
-        size = size << 8;
-        size = size | message.data[2];
-        if (size > EPS_BUF_SIZE)
-            return 0;
-        TPMessage response = {{0, 0, NodeID, OBC, false}};
-        response.appendUint8(Response);
-        response.appendUint16(size);
-        if (HAL_I2C_Master_Receive(&hi2c2, 0x20 << 1, EPSBuffer, size, ms_i2c_timeout) != HAL_OK) {
-            response.data[1] = 0;
-            response.data[2] = 0;
-        }
-        for (uint32_t i = 0; i < size; i++) {
-            response.appendUint8(EPSBuffer[i]);
-        }
-        Message default_message{};
-        uint16_t spacecraft_error_code = TPProtocol::createCANTPMessage(response, nullptr, default_message, retries);
-        return spacecraft_error_code;
-    }
-
-    uint16_t pingCOMMSSubsystem(TPMessage& message, uint8_t retries) {
-        uint8_t ID = message.data[1];
-        auto error = pingComponent(static_cast<pingIDs>(ID));
-        TPMessage response = {{0, 0, NodeID, OBC, false}};
-        response.appendUint8(Response);
-        response.appendUint16(error);
-        Message default_message{};
-        uint16_t spacecraft_error_code = TPProtocol::createCANTPMessage(response, nullptr, default_message, retries);
-        return spacecraft_error_code;
-    }
-
-
-    uint16_t pingOBCSubsystem(pingIDs ID, uint8_t retries) {
-        if (ID <= PingId_SUBSYSTEM_GUARD || ID >= PingId_OBC_MODULE_GUARD) {
             return 0;
         }
-        TPMessage tp_message = {{0, 0, NodeID, OBC, false}};
-        tp_message.appendUint8(PingSubsystem);
-        // Add data to message
-        tp_message.appendUint8(ID);
-
-        localPacketHandler response;
-        Message default_message{};
-        if (const auto error = CAN::TPProtocol::createCANTPMessage(tp_message, &response, default_message, retries); error != GENERIC_ERROR_NONE) {
-            return error;
-        }
-        uint16_t ReceivedError = GENERIC_ERROR_UNKNOWN;
-        memcpy(&ReceivedError, response.Buffer, sizeof(ReceivedError));
-        return ReceivedError;
+        return 1;
     }
-
-    uint16_t parseOperationalModeMessage(const TPMessage& message) {
-        uint16_t mode = message.data[1];
-        mode = mode << 8;
-        mode = mode | message.data[2];
-        // if (
-        //     mode != OBDHParameters::INIT_MODE &&
-        //     mode != OBDHParameters::COMMISSIONING_MODE &&
-        //     mode != OBDHParameters::SAFE_MODE &&
-        //     mode != OBDHParameters::NOMINAL_MODE &&
-        //     mode != OBDHParameters::PAYLOAD_MODE &&
-        //     mode != OBDHParameters::CRITICAL_MODE &&
-        //     mode != OBDHParameters::EMERGENCY_MODE) {
-        //     return TTC_ERROR_RECEIVED_OPERATIONAL_MODE_IS_NOT_A_VALID_OPTION;
-        // }
-        // if (mode == OBDHParameters::UNDEFINED_MODE) {
-        //     return TTC_ERROR_UNDEFINED_OP_MODE;
-        // }
-        // OBDHParameters::OBDH_OPERATIONAL_MODE = static_cast<OBDHParameters::OBDH_OPERATIONAL_MODE_enum>(mode);
-        return GENERIC_ERROR_NONE;
-    }
-
 
     uint16_t createRequestParametersMessage(NodeIDs destinationAddress,
                                                        const etl::array<uint16_t, TPMessageMaximumArguments>& parameterIDs,

@@ -7,7 +7,7 @@
 #include "etl/array.h"
 #include "etl/optional.h"
 
-#define TX_TRANSMIT 500
+#define TX_TRANSMIT 5000
 #define MaxPacketLength 128
 
 extern CRC_HandleTypeDef hcrc;

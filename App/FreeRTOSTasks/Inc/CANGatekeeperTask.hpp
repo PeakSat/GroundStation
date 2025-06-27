@@ -4,9 +4,9 @@
 #include "CANDriver.hpp"
 #include <optional>
 #include "semphr.h"
+#include "TaskConfigs.hpp"
 
 
-struct UnifiedModuleError;
 extern bool expectingACK;
 extern bool ACKReceived;
 extern localPacketHandler* responsePointer;
@@ -106,10 +106,6 @@ static inline uint8_t incomingFrameQueueStorageArea[sizeOfIncommingFrameBuffer *
 static const uint8_t PacketQueueSize = 40;
 static inline uint8_t outgoingQueueStorageArea[PacketQueueSize * sizeof(CAN::Packet)] __attribute__((section(".dtcmram_data_outgoingQueueStorageArea")));
 
-static const uint8_t ADCSPacketQueueSize = 10;
-static inline uint8_t outgoingADCSQueueStorageArea[ADCSPacketQueueSize * sizeof(CanPacket)] __attribute__((section(".dtcmram_data_outgoingADCSQueueStorageArea")));
-static inline uint8_t incomingADCSQueueStorageArea[ADCSPacketQueueSize * sizeof(CanPacket)] __attribute__((section(".dtcmram_data_incomingADCSQueueStorageArea")));
-
 static const uint8_t incomingPacketQueueSize = 3;
 static inline uint8_t incomingPacketQueueStorageArea[incomingPacketQueueSize * sizeof(localPacketHandler)] __attribute__((section(".dtcmram_data_incomingPacketQueueStorageArea")));
 
@@ -119,7 +115,7 @@ inline QueueHandle_t incomingPacketQueue;
 inline QueueHandle_t outgoingQueue;
 inline CAN::Frame newFrame;
 
-class CANGatekeeperTask : public virtual Task, public StateMachineTask {
+class CANGatekeeperTask : public virtual Task {
 public:
     // CONSTANTS
     static constexpr uint16_t TASK_WAIT_TO_BEGIN_MS = 1000;
@@ -157,33 +153,25 @@ public:
                                                 &incomingFrameQueueBuffer);
         vQueueAddToRegistry(incomingFrameQueue, "CAN Incoming Frame");
 
-        incomingADCSQueue = xQueueCreateStatic(ADCSPacketQueueSize, sizeof(CanPacket), incomingADCSQueueStorageArea,
-                                               &incomingADCSQueueBuffer);
-        vQueueAddToRegistry(incomingADCSQueue, "CAN ADCS Incoming Frame");
-
-        outgoingADCSQueue = xQueueCreateStatic(ADCSPacketQueueSize, sizeof(CanPacket), outgoingADCSQueueStorageArea,
-                                               &outgoingADCSQueueBuffer);
-        vQueueAddToRegistry(outgoingADCSQueue, "CAN ADCS outgoing Frame");
-
         incomingPacketQueue = xQueueCreateStatic(incomingPacketQueueSize, sizeof(localPacketHandler), incomingPacketQueueStorageArea,
                                                  &incomingPacketQueueBuffer);
         vQueueAddToRegistry(incomingPacketQueue, "CAN Incoming Packet");
     }
 
-    static SpacecraftErrorCode send(const CAN::Packet& message, uint16_t wait_for_queue_full_ms = 5000) {
+    static uint16_t send(const CAN::Packet& message, uint16_t wait_for_queue_full_ms = 5000) {
 
         auto status = xQueueSendToBack(outgoingQueue, &message, pdMS_TO_TICKS(wait_for_queue_full_ms));
         if (status == errQUEUE_FULL) {
-            return TTC_ERROR_CAN_GATEKEEPER_OUTGOING_QUEUE_FULL;
+            return 0;
         }
-        return GENERIC_ERROR_NONE;
+        return 1;
     }
-    static SpacecraftErrorCode processFrame(const CAN::Frame& in_frame_handler, localPacketHandler& packetHandler);
-    static SpacecraftErrorCode processCompletedMessage(localPacketHandler& packetHandler, uint16_t ms_to_wait_if_queue_is_full);
-    static SpacecraftErrorCode handleFinalFrame(const CAN::Frame& in_frame_handler, localPacketHandler& packetHandler, uint16_t ms_to_wait_if_queue_is_full);
-    static SpacecraftErrorCode handleSingleFrame(const CAN::Frame& in_frame_handler, localPacketHandler& packetHandler);
+    static uint16_t processFrame(const CAN::Frame& in_frame_handler, localPacketHandler& packetHandler);
+    static uint16_t processCompletedMessage(localPacketHandler& packetHandler, uint16_t ms_to_wait_if_queue_is_full);
+    static uint16_t handleFinalFrame(const CAN::Frame& in_frame_handler, localPacketHandler& packetHandler, uint16_t ms_to_wait_if_queue_is_full);
+    static uint16_t handleSingleFrame(const CAN::Frame& in_frame_handler, localPacketHandler& packetHandler);
     static void handleFirstFrame(const CAN::Frame& in_frame_handler, localPacketHandler& packetHandler, uint8_t payloadLength);
-    static SpacecraftErrorCode handleConsecutiveFrame(const CAN::Frame& in_frame_handler, localPacketHandler& packetHandler);
+    static uint16_t handleConsecutiveFrame(const CAN::Frame& in_frame_handler, localPacketHandler& packetHandler);
 
     void switchActiveBus(CAN::ActiveBus activeBus) {
         this->ActiveBus = activeBus;

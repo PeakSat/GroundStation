@@ -7,7 +7,6 @@
 using namespace CAN;
 
 extern FDCAN_HandleTypeDef hfdcan1;
-extern FDCAN_HandleTypeDef hfdcan2;
 
 
 uint16_t TPProtocol::parseMessage(TPMessage& tp_message, Message& message, uint16_t length, uint8_t retries) {
@@ -38,26 +37,13 @@ uint16_t TPProtocol::parseMessage(TPMessage& tp_message, Message& message, uint1
             heartbeatReceived = true;
             break;
         }
-        case Application::EPSRelay_I2CwriteRegister: {
-            spacecraft_error_code = Application::EPSWriteRegisterThroughCAN(tp_message, OBDHParameters::OBDH_CAN_RESPONSE_TIMEOUT);
-            break;
-        }
-        case Application::EPSRelay_I2CreadRegister: {
-            spacecraft_error_code = Application::EPSReadRegisterThroughCAN(tp_message, retries, OBDHParameters::OBDH_CAN_RESPONSE_TIMEOUT);
-            break;
-        }
         case Application::PingSubsystem: {
             spacecraft_error_code = Application::pingCOMMSSubsystem(tp_message, retries);
             break;
         }
         case Application::LogMessage: {
-            auto senderID = tp_message.idInfo.sourceAddress;
-            auto senderName = Application::nodeIdToString.at(senderID);
-            String<1024> logSource = "Incoming Log from ";
-            logSource.append(senderName);
-            logSource.append(": ");
             auto logData = String<1024>(message.data.data() + 1, message.data_size_ecss_ - 1);
-            LOG_DEBUG << logSource.c_str() << logData.c_str();
+            LOG_DEBUG << logData.c_str();
             break;
         }
         default:
@@ -74,26 +60,25 @@ uint16_t TPProtocol::CANBreaker(TPMessage& tp_message, localPacketHandler* respo
     // Called by the ParameterMonitoringTask
     if (tp_message.data[0] == Application::Heartbeat) {
         auto error = createCANTPMessageNoRetransmit(tp_message, response);
-        if (error == GENERIC_ERROR_NONE) {
-            COMMSParameters::COMMS_CAN_STATUS = COMMSParameters::CANNominal;
+        if (error == 1) {
             recovered = true;
         }
         return error;
     }
-    return TTC_ERROR_CAN_OUT_OF_COMMISSION;
+    return 0;
 }
 
 uint16_t TPProtocol::createCANTPMessage(TPMessage& tp_message, localPacketHandler* response, const Message& message, uint8_t retries) {
     // Check if can is out of commission
     if (xSemaphoreTake(canHandler.getTransmitMutex(), pdMS_TO_TICKS(canHandler.getTransmitTimeout())) == pdFALSE) {
-        return TTC_ERROR_CAN_MTX_TIMEOUT;
+        return 0;
     }
     bool recovered = false;
     uint16_t breakerError = CANBreaker(tp_message, response, recovered);
-    if (breakerError != GENERIC_ERROR_NONE) {
+    if (breakerError != 1) {
         if (recovered == true) {
             xSemaphoreGive(canHandler.getTransmitMutex());
-            return GENERIC_ERROR_NONE;
+            return 1;
         }
         xSemaphoreGive(canHandler.getTransmitMutex());
         return breakerError;
@@ -103,33 +88,28 @@ uint16_t TPProtocol::createCANTPMessage(TPMessage& tp_message, localPacketHandle
     auto error = createCANTPMessageWithRetry(tp_message, response, message, retries);
 
     // start FDIR if necessary
-    if (error != GENERIC_ERROR_NONE) {
+    if (error != 1) {
         // CHANGE CAN BUS
         // FDIR
         if (activeBus == Redundant) {
             activeBus = Main;
-            COMMSParameters::COMMS_CAN_ACTIVE_BUS = COMMSParameters::CAN1;
             canGatekeeperTask->switchActiveBus(Main);
         } else {
             activeBus = Redundant;
-            COMMSParameters::COMMS_CAN_ACTIVE_BUS = COMMSParameters::CAN2;
             canGatekeeperTask->switchActiveBus(Redundant);
         }
         error = createCANTPMessageWithRetry(tp_message, response, message, retries);
 
-        if (error != GENERIC_ERROR_NONE) {
+        if (error != 1) {
             uint32_t can1error = HAL_FDCAN_GetError(&hfdcan1);
-            uint32_t can2error = HAL_FDCAN_GetError(&hfdcan2);
 
             FDCAN_ErrorCountersTypeDef CAN1errorCounter;
             HAL_FDCAN_GetErrorCounters(&hfdcan1, &CAN1errorCounter);
             FDCAN_ErrorCountersTypeDef CAN2errorCounter;
-            HAL_FDCAN_GetErrorCounters(&hfdcan2, &CAN2errorCounter);
 
             FDCAN_ProtocolStatusTypeDef CAN1ProtocolStatus;
             HAL_FDCAN_GetProtocolStatus(&hfdcan1, &CAN1ProtocolStatus);
             FDCAN_ProtocolStatusTypeDef CAN2ProtocolStatus;
-            HAL_FDCAN_GetProtocolStatus(&hfdcan2, &CAN2ProtocolStatus);
 
 
             xSemaphoreGive(canHandler.getTransmitMutex());

@@ -13,8 +13,8 @@
 #define MIN_TC_DATA_SIZE 10
 
 
-extern UART_HandleTypeDef huart4;
-extern DMA_HandleTypeDef hdma_uart4_rx;
+extern UART_HandleTypeDef huart3;
+extern DMA_HandleTypeDef hdma_usart3_rx;
 
 inline uint8_t ECSS_TC_BUF[MAX_TC_DATA_SIZE]{};
 

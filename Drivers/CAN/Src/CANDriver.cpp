@@ -7,7 +7,6 @@
 using namespace CAN;
 
 extern FDCAN_HandleTypeDef hfdcan1;
-extern FDCAN_HandleTypeDef hfdcan2;
 
 
 void CAN::configCANFilter(uint32_t rx_fifo) {
@@ -29,26 +28,6 @@ void CAN::configCANFilter(uint32_t rx_fifo) {
         // TODO
         // Error_Handler();
     }
-
-    FDCAN_FilterTypeDef sFilterConfig2;
-
-    sFilterConfig2.IdType = FDCAN_EXTENDED_ID;      // Standard or extended id
-    sFilterConfig2.FilterIndex = 0;                 // In case of configuring multiple filters adapt accordingly
-    sFilterConfig2.FilterType = FDCAN_FILTER_RANGE; // Filter type
-    if (rx_fifo == 0) {
-        sFilterConfig2.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-    } else {
-        sFilterConfig2.FilterConfig = FDCAN_FILTER_TO_RXFIFO1;
-    }
-    sFilterConfig2.FilterID1 = 0x380;
-    sFilterConfig2.FilterID2 = 0x3FF;
-    sFilterConfig2.RxBufferIndex = 0;
-
-    if (HAL_FDCAN_ConfigFilter(&hfdcan2, &sFilterConfig2) != HAL_OK) {
-        /* Filter configuration Error */
-        // TODO
-        // Error_Handler();
-    }
 }
 
 void CAN::initialize(uint8_t fifo_select) {
@@ -58,35 +37,25 @@ void CAN::initialize(uint8_t fifo_select) {
     if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
         // TODO
     }
-    if (HAL_FDCAN_Start(&hfdcan2) != HAL_OK) {
-        // TODO
-        Error_Handler();
-    }
+
 
     if (fifo_select == 0) {
         // Activate the notification for new data in FIFO0 for FDCAN1
         if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
             // TODO
         }
-        // Activate the notification for new data in FIFO1 for FDCAN2
-        if (HAL_FDCAN_ActivateNotification(&hfdcan2, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
-            // TODO
-            Error_Handler();
-        }
+
+
     } else {
         // Activate the notification for new data in FIFO0 for FDCAN1
         if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0) != HAL_OK) {
-            // TODO
-        }
-        // Activate the notification for new data in FIFO1 for FDCAN2
-        if (HAL_FDCAN_ActivateNotification(&hfdcan2, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0) != HAL_OK) {
             // TODO
         }
     }
 }
 
 void CAN::logMessage(const CAN::CANBuffer_t& rxBuf, FDCAN_RxHeaderTypeDef RxHeader, CAN::ActiveBus incomingBus) {
-    auto message = String<ECSSMaxStringSize>("CAN Message: ");
+    auto message = String<1024>("CAN Message: ");
     if (incomingBus == Main) {
         message.append("FDCAN1 ");
     } else {
@@ -166,46 +135,20 @@ uint16_t CAN::send(const CAN::Packet& message, CAN::ActiveBus outgoingBus) {
     if (outgoingBus == Main && identifier.destinationAddress == OBC) {
         hal_status = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &CAN::txHeader, txFifo.data());
     } else if (identifier.destinationAddress == OBC) {
-        hal_status = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &CAN::txHeader, txFifo.data());
+        hal_status = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &CAN::txHeader, txFifo.data());
         which_can = true;
     } else {
-        return TTC_ERROR_CAN_SEND_WRONG_USAGE;
+        return 0;
     }
     if (hal_status != HAL_OK) {
         uint32_t hal_error;
         if (which_can)
             hal_error = HAL_FDCAN_GetError(&hfdcan1);
         else
-            hal_error = HAL_FDCAN_GetError(&hfdcan2);
+            hal_error = HAL_FDCAN_GetError(&hfdcan1);
 
         return 0;
     }
-    return 1;
-}
-uint16_t CAN::sendADCS(CanPacket& packet) {
-    // Sanity check on packet size
-    if (packet.canSize > MaxPayloadLength) {
-        return 0;
-    }
-
-    CAN::txHeader.Identifier = packet.canExtId;
-    CAN::txHeader.DataLength = packet.canSize;
-    CAN::txHeader.IdType = FDCAN_EXTENDED_ID;
-
-    // Copy the data
-    memcpy(txFifo.data(), packet.canData, packet.canSize);
-
-    IdInfo identifier = TPMessage::decodeId(packet.canExtId);
-
-    if (identifier.destinationAddress != ADCS) {
-        return 0;
-    }
-
-    HAL_StatusTypeDef hal_status = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &CAN::txHeader, txFifo.data());
-    if (hal_status != HAL_OK) {
-        uint32_t hal_error = HAL_FDCAN_GetError(&hfdcan1);
-    }
-
     return 1;
 }
 

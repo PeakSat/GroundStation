@@ -190,15 +190,6 @@ void CANGatekeeperTask::execute() {
             xQueueReceive(outgoingQueue, &out_message, portMAX_DELAY);
 
             uint16_t spacecraft_error_code = CAN::send(out_message, ActiveBus);
-
-        }
-        while (uxQueueMessagesWaiting(outgoingADCSQueue)) {
-            CanPacket packet;
-            xQueueReceive(outgoingADCSQueue, &packet, portMAX_DELAY);
-            uint16_t spacecraft_error_code = CAN::sendADCS(packet);
-            if (spacecraft_error_code != 1) {
-                // REPORT_ERROR_WITH_CONTEXT(spacecraft_error_code, false, MS_WAIT_FOR_QUEUE_FULL);
-            }
         }
     }
 }

@@ -99,13 +99,7 @@ namespace CAN::Application {
      */
     uint16_t sendPongMessage(uint8_t retries);
 
-    /**
-     * Handle the EPS communication relay.
-     */
-    uint16_t EPSWriteRegisterThroughCAN(TPMessage& message, uint16_t ms_i2c_timeout);
-    uint16_t EPSReadRegisterThroughCAN(TPMessage& message, uint8_t retries, uint16_t ms_i2c_timeout);
     uint16_t pingCOMMSSubsystem(TPMessage& message, uint8_t retries);
-    // uint16_t pingOBCSubsystem(pingIDs ID, uint8_t retries);
     uint16_t parseOperationalModeMessage(const TPMessage& message);
 
     /**
@@ -133,7 +127,7 @@ namespace CAN::Application {
      * Protocol frames to be transmitted.
      * @param destinationAddress The ID of the destination node.
      */
-    uint16_t createPacketMessage(NodeIDs destinationAddress, const etl::string<ECSSMaxStringSize>& incomingMessage, Message::PacketType packetType, uint8_t retries);
+    uint16_t createPacketMessage(NodeIDs destinationAddress, const etl::string<1024>& incomingMessage, Message::PacketType packetType, uint8_t retries);
 
     uint16_t createTCPacket(NodeIDs destinationAddress, Message& message, uint8_t retries);
 

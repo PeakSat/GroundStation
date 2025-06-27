@@ -136,7 +136,6 @@ namespace CAN {
      * @param message The message to be sent.
      */
     uint16_t send(const CAN::Packet& message, const CAN::ActiveBus activeBus);
-    uint16_t sendADCS(CanPacket& packet);
     void configureTxHeader();
 
     /**

@@ -24,11 +24,12 @@ namespace CAN {
         OBC = 0x5,
         TTC = 0x6,
         ADCS = 0x2,
+        LOGGER = 0x7
     };
     /**
      * The ID for the current node as described in DDJF_OBDH
      */
-    inline const NodeIDs NodeID = TTC;
+    inline const NodeIDs NodeID = LOGGER;
 
     /**
      * The maximum of the length of the queue for incoming/outgoing CAN frames.

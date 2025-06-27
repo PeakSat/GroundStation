@@ -35,7 +35,7 @@ namespace CAN::TPProtocol {
      * Processes the stored messages received and acts on their content accordingly.
      * @param message the complete CAN-TP message.
      */
-    SpacecraftErrorCode parseMessage(TPMessage& tp_message, Message& message, uint16_t length, uint8_t retries);
+    uint16_t parseMessage(TPMessage& tp_message, Message& message, uint16_t length, uint8_t retries);
 
     /**
      * Splits a CAN-TP Message into a collection of CAN frames according to the TP protocol and adds them to the CAN
@@ -50,9 +50,9 @@ namespace CAN::TPProtocol {
      * however idx only reaches a maximum value of 62 which makes the position in the consecutiveFrame array valid.
      * The message.data[] part reaches the maximum index of 62 for the first frame, continues from 63 up to 125 etc.
      */
-    SpacecraftErrorCode CANBreaker(TPMessage& tp_message, localPacketHandler* response, bool& recovered);
-    SpacecraftErrorCode createCANTPMessage(TPMessage& tp_message, localPacketHandler* response, const Message& message, uint8_t retries);
-    SpacecraftErrorCode createCANTPResponse(TPMessage& tp_message, const Message& message, uint8_t retries);
-    SpacecraftErrorCode createCANTPMessageWithRetry(TPMessage& tp_message, localPacketHandler* response, const Message& message, uint8_t retries);
-    SpacecraftErrorCode createCANTPMessageNoRetransmit(TPMessage& tp_message, localPacketHandler* response);
+    uint16_t CANBreaker(TPMessage& tp_message, localPacketHandler* response, bool& recovered);
+    uint16_t createCANTPMessage(TPMessage& tp_message, localPacketHandler* response, const Message& message, uint8_t retries);
+    uint16_t createCANTPResponse(TPMessage& tp_message, const Message& message, uint8_t retries);
+    uint16_t createCANTPMessageWithRetry(TPMessage& tp_message, localPacketHandler* response, const Message& message, uint8_t retries);
+    uint16_t createCANTPMessageNoRetransmit(TPMessage& tp_message, localPacketHandler* response);
 } // namespace CAN::TPProtocol
