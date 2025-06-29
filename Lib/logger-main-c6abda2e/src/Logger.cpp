@@ -49,7 +49,7 @@ void Logger::log(Logger::LogLevel level, etl::istring &message) {
     output.append(levelString.c_str());
     output.append("] ");
 
-    etl::string<MaxLogNameSize> subsystemString = "NUCLEO-GS";
+    etl::string<MaxLogNameSize> subsystemString = "NUCLEO";
     while (subsystemString.available()) {
         subsystemString.append(" ");
     }
@@ -60,9 +60,8 @@ void Logger::log(Logger::LogLevel level, etl::istring &message) {
 
 
     if (uartGatekeeperTask) {
-            uartGatekeeperTask->addToQueue(output);
+            uartGatekeeperTask->addToQueue(output, uartGatekeeperTask->taskHandle);
     }
-
 
 }
 

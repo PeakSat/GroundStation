@@ -3,6 +3,8 @@
 #include "Task.hpp"
 #include "queue.h"
 #include "semphr.h"
+#include "TaskConfigs.hpp"
+#include "../../../Drivers/AT86RF215/Inc/at86rf215definitions.hpp"
 #include "etl/string.h"
 #include "etl/optional.h"
 #define UARTQueueSize 20
@@ -44,8 +46,14 @@ public:
      * If the queue is full, the string is not added to the queue and is lost.
      * @param message the etl::string to be added in the queue of the UART Gatekeeper task.
      */
-    void addToQueue(const etl::string<LOGGER_MAX_MESSAGE_SIZE>& message) {
-        xQueueSendToBack(xUartQueue, &message, 0);
+    void addToQueue(const etl::string<LOGGER_MAX_MESSAGE_SIZE>& message, TaskHandle_t task_handle) {
+        auto status = xQueueSendToBack(xUartQueue, &message, 0);
+        if (status == pdPASS) {
+            xTaskNotifyIndexed(task_handle , NOTIFY_INDEX_UART_GATEKEEPER, UART, eSetBits);
+        }
+        else {
+
+        }
     }
 
     void createTask() {

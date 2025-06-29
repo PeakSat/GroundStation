@@ -143,7 +143,7 @@ bool TCHandlingTask::resetUARTIfNeeded() {
 
 
 [[noreturn]] void TCHandlingTask::execute() {
-
+    LOG_INFO << "TCHANDLING" ;
     auto uart_status = startUART(tc_buf_dma, MAX_TC_DATA_SIZE, 3, 200);
 
     while (true) {
