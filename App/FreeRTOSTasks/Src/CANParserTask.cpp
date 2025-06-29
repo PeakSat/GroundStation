@@ -54,7 +54,6 @@ uint16_t CANParserTask::handlePacket(const localPacketHandler& CANPacketHandler,
 
 void CANParserTask::execute() {
     vTaskDelay(pdMS_TO_TICKS(TASK_WAIT_TO_BEGIN_MS));
-    LOG_INFO << "CANPARSER" ;
     while (true) {
         xTaskNotifyWait(pdFALSE, 0xFFFFFFFF, &received_events_, pdMS_TO_TICKS(WAIT_FOR_NOTIFICATION_MS));
         uint16_t spacecraft_error_code = 1;
