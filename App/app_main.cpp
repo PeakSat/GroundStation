@@ -142,3 +142,13 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart) {
     }
 }
 
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    if (huart->Instance == USART3) {
+        if (UART_Gatekeeper_Semaphore != nullptr) {
+            xSemaphoreGiveFromISR(UART_Gatekeeper_Semaphore, &xHigherPriorityTaskWoken);
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
+}
