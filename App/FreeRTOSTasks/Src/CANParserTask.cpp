@@ -55,11 +55,12 @@ uint16_t CANParserTask::handlePacket(const localPacketHandler& CANPacketHandler,
 void CANParserTask::execute() {
     vTaskDelay(pdMS_TO_TICKS(TASK_WAIT_TO_BEGIN_MS));
     while (true) {
-        xTaskNotifyWait(pdFALSE, 0xFFFFFFFF, &received_events_, pdMS_TO_TICKS(WAIT_FOR_NOTIFICATION_MS));
+        xTaskNotifyWait(pdFALSE, 0xFFFFFFFF, &received_events_, portMAX_DELAY);
         uint16_t spacecraft_error_code = 1;
         while (uxQueueMessagesWaiting(incomingPacketQueue)) {
             localPacketHandler CANPacketHandler;
-            xQueueReceive(incomingPacketQueue, &CANPacketHandler, 0);
+            xQueueReceive(incomingPacketQueue, &CANPacketHandler, 50);
+            // LOG_DEBUG << "incoming size, parser, " << CANPacketHandler.PacketSize;
 
             if (uxQueueMessagesWaiting(incomingPacketQueue) == 0) {
                 spacecraft_error_code = sendACK(static_cast<CAN::Application::MessageIDs>(CANPacketHandler.MessageID));

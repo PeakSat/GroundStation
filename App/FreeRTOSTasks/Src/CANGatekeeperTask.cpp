@@ -170,10 +170,10 @@ void CANGatekeeperTask::execute() {
         xTaskNotifyWait(pdFALSE, 0xFFFFFFFF, &receive_events_, pdMS_TO_TICKS(WAIT_FOR_NOTIFICATION_MS));
         while (uxQueueMessagesWaiting(incomingFrameQueue)) {
             // Get the message pointer from the queue
-            xQueueReceive(incomingFrameQueue, &in_frame_handler, pdMS_TO_TICKS(100));
+            xQueueReceive(incomingFrameQueue, &in_frame_handler, pdMS_TO_TICKS(5));
 
             IdInfo identifier = CAN::TPMessage::decodeId(in_frame_handler.header.Identifier);
-            if (identifier.destinationAddress == CAN::TTC && identifier.sourceAddress == CAN::LOGGER) {
+            if (identifier.destinationAddress == CAN::LOGGER && identifier.sourceAddress == CAN::TTC) {
                 localPacketHandler* CANPacketHandler = &CAN1PacketHandler;
                 uint16_t spacecraft_error_code = 1;
                 if (in_frame_handler.bus->Instance == FDCAN1)

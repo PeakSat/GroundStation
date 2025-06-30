@@ -42,7 +42,7 @@ UARTGatekeeperTask::UARTGatekeeperTask() : Task("UARTGatekeeperTask") {
                             vTaskDelay(pdMS_TO_TICKS(1)); // Small delay to prevent busy waiting
                         }
 
-                        auto status = HAL_UART_Transmit_IT(&huart3, buffer, local_size);
+                        auto status = HAL_UART_Transmit_DMA(&huart3, buffer, local_size);
                         if (status != HAL_OK) {
                             // DMA failed — try reset and retry once
                             __HAL_RCC_UART4_FORCE_RESET();

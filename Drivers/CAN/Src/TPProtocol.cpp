@@ -42,7 +42,7 @@ uint16_t TPProtocol::parseMessage(TPMessage& tp_message, Message& message, uint1
             break;
         }
         case Application::LogMessage: {
-            auto logData = String<1024>(message.data.data() + 1, message.data_size_ecss_ - 1);
+            auto logData = String<1024>(tp_message.data.data() + 1, length);
             LOG_DEBUG << logData.c_str();
             break;
         }

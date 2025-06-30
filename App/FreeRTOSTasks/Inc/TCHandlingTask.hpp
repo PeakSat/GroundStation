@@ -64,8 +64,7 @@ public:
         this->taskHandle = xTaskCreateStatic(vClassTask<TCHandlingTask>, this->TaskName,
                                              TCHandlingTaskStack, this, TCHandlingTaskPriority,
                                              TCHandlingTaskbuffer, &(this->taskBuffer));
-        QueueHandleUART_ = xQueueCreateStatic(ITEM_SIZE_UART, QUEUE_LENGTH_UART, incomingTCUARTQueueStorageArea,
-                                          &incomingTCUARTQueueBuffer);
+        QueueHandleUART_ = xQueueCreateStatic(QUEUE_LENGTH_UART, ITEM_SIZE_UART, incomingTCUARTQueueStorageArea, &incomingTCUARTQueueBuffer);
 
 
         vQueueAddToRegistry(QueueHandleUART_, "TC UART queue");

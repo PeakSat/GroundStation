@@ -18,45 +18,45 @@ Logger::LogEntry::~LogEntry() {
 
 
 void Logger::log(Logger::LogLevel level, etl::istring &message) {
-    etl::string<MaxLogNameSize> levelString;
-    etl::string<MaxTickCountStringSize> time;
-
-    if (level <= Logger::trace) {
-        levelString.append("trace");
-    } else if (level <= Logger::debug) {
-        levelString.append("debug");
-    } else if (level <= Logger::info) {
-        levelString.append("info");
-    } else if (level <= Logger::notice) {
-        levelString.append("notice");
-    } else if (level <= Logger::warning) {
-        levelString.append("warning");
-    } else if (level <= Logger::error) {
-        levelString.append("error");
-    } else {
-        levelString = "emergency";
-    }
-
-    while (levelString.available()) {
-        levelString.append(" ");
-    }
-
-    etl::to_string(xTaskGetTickCount(), time, format.width(MaxTickCountStringSize), 0);
-
+    // etl::string<MaxLogNameSize> levelString;
+    // etl::string<MaxTickCountStringSize> time;
+    //
+    // if (level <= Logger::trace) {
+    //     levelString.append("trace");
+    // } else if (level <= Logger::debug) {
+    //     levelString.append("debug");
+    // } else if (level <= Logger::info) {
+    //     levelString.append("info");
+    // } else if (level <= Logger::notice) {
+    //     levelString.append("notice");
+    // } else if (level <= Logger::warning) {
+    //     levelString.append("warning");
+    // } else if (level <= Logger::error) {
+    //     levelString.append("error");
+    // } else {
+    //     levelString = "emergency";
+    // }
+    //
+    // while (levelString.available()) {
+    //     levelString.append(" ");
+    // }
+    //
+    // etl::to_string(xTaskGetTickCount(), time, format.width(MaxTickCountStringSize), 0);
+    //
     etl::string<LOGGER_MAX_MESSAGE_SIZE> output;
-    output.append(time.c_str());
-    output.append(" [");
-    output.append(levelString.c_str());
-    output.append("] ");
-
-    etl::string<MaxLogNameSize> subsystemString = "NUCLEO";
-    while (subsystemString.available()) {
-        subsystemString.append(" ");
-    }
-    output.append(subsystemString.c_str());
-
+    // output.append(time.c_str());
+    // output.append(" [");
+    // output.append(levelString.c_str());
+    // output.append("] ");
+    //
+    // etl::string<MaxLogNameSize> subsystemString = "NUCLEO";
+    // while (subsystemString.available()) {
+    //     subsystemString.append(" ");
+    // }
+    // output.append(subsystemString.c_str());
+    //
     output.append(message.c_str());
-    output.append("\n");
+    // output.append("\n");
 
 
     if (uartGatekeeperTask) {

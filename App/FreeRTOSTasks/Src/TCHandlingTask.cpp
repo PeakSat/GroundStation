@@ -143,6 +143,7 @@ bool TCHandlingTask::resetUARTIfNeeded() {
 
 
 [[noreturn]] void TCHandlingTask::execute() {
+    LOG_INFO << "[TC HANDLING]";
     auto uart_status = startUART(tc_buf_dma, MAX_TC_DATA_SIZE, 3, 200);
 
     while (true) {
@@ -155,7 +156,6 @@ bool TCHandlingTask::resetUARTIfNeeded() {
                     uint16_t size = tc_uart_handler.data_size;
                     CAN::TPMessage response = {{0, 0, CAN::NodeID, CAN::TTC, false}};
                     response.appendUint8(CAN::Application::LogMessage);
-                    response.appendUint16(size);
 
                     for (uint32_t i = 0; i < size; i++) {
                         response.appendUint8(tc_uart_handler.buf[i]);
