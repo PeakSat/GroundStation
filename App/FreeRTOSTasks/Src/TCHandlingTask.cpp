@@ -81,7 +81,7 @@ uint16_t TCHandlingTask::startUART(uint8_t* buf, uint16_t size, uint8_t retries,
             // __HAL_DMA_DISABLE_IT(&hdma_uart4_rx, DMA_IT_HT);
             // __HAL_DMA_DISABLE_IT(&hdma_uart4_rx, DMA_IT_TC);
             spacecraft_error_code = 1;
-            LOG_DEBUG << "[TC HANDLING] UART DMA started successfully on attempt " << attempt + 1;
+            // LOG_DEBUG << "[TC HANDLING] UART DMA started successfully on attempt " << attempt + 1;
             break;
         }
         // Log specific error
@@ -143,7 +143,6 @@ bool TCHandlingTask::resetUARTIfNeeded() {
 
 
 [[noreturn]] void TCHandlingTask::execute() {
-    LOG_INFO << "[TC HANDLING]";
     auto uart_status = startUART(tc_buf_dma, MAX_TC_DATA_SIZE, 3, 200);
 
     while (true) {
@@ -152,7 +151,7 @@ bool TCHandlingTask::resetUARTIfNeeded() {
 
             while (uxQueueMessagesWaiting(QueueHandleUART_)) {
                 if (xQueueReceive(QueueHandleUART_, &tc_uart_handler, 0) == pdTRUE) {
-                    LOG_INFO << "****[TC HANDLING] FROM UART*****, data size: " << tc_uart_handler.data_size;
+                    // LOG_INFO << "****[TC HANDLING] FROM UART*****, data size: " << tc_uart_handler.data_size;
                     uint16_t size = tc_uart_handler.data_size;
                     CAN::TPMessage response = {{0, 0, CAN::NodeID, CAN::TTC, false}};
                     response.appendUint8(CAN::Application::LogMessage);

@@ -63,7 +63,7 @@ void CANParserTask::execute() {
             // LOG_DEBUG << "incoming size, parser, " << CANPacketHandler.PacketSize;
 
             if (uxQueueMessagesWaiting(incomingPacketQueue) == 0) {
-                spacecraft_error_code = sendACK(static_cast<CAN::Application::MessageIDs>(CANPacketHandler.MessageID));
+                // spacecraft_error_code = sendACK(static_cast<CAN::Application::MessageIDs>(CANPacketHandler.MessageID));
                 spacecraft_error_code = handlePacket(CANPacketHandler, MS_WAIT_FOR_QUEUE_FULL, 1);
             }
         }
