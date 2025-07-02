@@ -132,8 +132,8 @@ uint16_t TPProtocol::createCANTPMessageWithRetry(TPMessage& tp_message, localPac
     auto error = 1;
     for (uint32_t i = 0; i < retries; i++) {
         error = createCANTPMessageNoRetransmit(tp_message, response);
-        if (error == 1) {
-            return 1;
+        if (error != 1) {
+            return error;
         }
         // COMMSParameters::COMMS_CAN_RETRANSMIT_COUNTER = COMMSParameters::COMMS_CAN_RETRANSMIT_COUNTER + 1;
     }
@@ -161,7 +161,7 @@ uint16_t TPProtocol::createCANTPMessageNoRetransmit(TPMessage& tp_message, local
 
     responsePointer = response;
     if (tp_message.data[0] != Application::Response) {
-        expectingACK = true;
+        // expectingACK = true;
         ACKReceived = false;
         if (response != nullptr) {
             response->MessageID = CAN::Application::MessageIDs::InvalidMessageID;
@@ -209,7 +209,7 @@ uint16_t TPProtocol::createCANTPMessageNoRetransmit(TPMessage& tp_message, local
             return 0;
         }
     }
-
+    return 1;
     if (tp_message.data[0] == Application::Response) {
         expectingACK = false;
         ACKReceived = false;

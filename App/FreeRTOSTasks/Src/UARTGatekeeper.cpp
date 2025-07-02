@@ -31,17 +31,6 @@ UARTGatekeeperTask::UARTGatekeeperTask() : Task("UARTGatekeeperTask") {
                             local_size = local_size + 2;
                         }
 
-                        // Wait for UART to be ready
-                        uint32_t timeout_start = HAL_GetTick();
-                        const uint32_t UART_READY_TIMEOUT_MS = 500;
-
-                        while (HAL_UART_GetState(&huart3) != HAL_UART_STATE_READY) {
-                            if ((HAL_GetTick() - timeout_start) > UART_READY_TIMEOUT_MS) {
-                                break;
-                            }
-                            vTaskDelay(pdMS_TO_TICKS(1)); // Small delay to prevent busy waiting
-                        }
-
                         auto status = HAL_UART_Transmit_DMA(&huart3, buffer, local_size);
                         if (status != HAL_OK) {
                             // DMA failed — try reset and retry once

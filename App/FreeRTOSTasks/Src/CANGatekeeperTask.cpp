@@ -174,7 +174,6 @@ void CANGatekeeperTask::execute() {
 
             IdInfo identifier = CAN::TPMessage::decodeId(in_frame_handler.header.Identifier);
             if (identifier.destinationAddress == CAN::LOGGER && identifier.sourceAddress == CAN::TTC) {
-                localPacketHandler* CANPacketHandler = &CAN1PacketHandler;
                 uint16_t spacecraft_error_code = 1;
                 if (in_frame_handler.bus->Instance == FDCAN1)
                     spacecraft_error_code = processFrame(in_frame_handler, CAN1PacketHandler);
