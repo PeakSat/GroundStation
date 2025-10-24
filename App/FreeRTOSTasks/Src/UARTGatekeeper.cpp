@@ -19,7 +19,7 @@ UARTGatekeeperTask::UARTGatekeeperTask() : Task("UARTGatekeeperTask") {
         uint32_t received_events = 0;
         if (xTaskNotifyWaitIndexed(NOTIFY_INDEX_UART_GATEKEEPER, pdFALSE, 0xFFFFFFFF, &received_events, portMAX_DELAY) == pdTRUE) {
                 while (uxQueueMessagesWaiting(xUartQueue)) {
-                    xQueueReceive(xUartQueue, &output, 100);
+                    xQueueReceive(xUartQueue, &output, 0);
                     if (xSemaphoreTake(UART_Gatekeeper_Semaphore, pdMS_TO_TICKS(1000)) == pdTRUE) {
                         output.repair();
                         memcpy(buffer, output.data(), output.size());

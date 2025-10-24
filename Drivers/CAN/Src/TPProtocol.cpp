@@ -1,4 +1,7 @@
 #include "TPProtocol.hpp"
+
+#include <UARTGatekeeperTask.hpp>
+
 #include "CANGatekeeperTask.hpp"
 #include "ApplicationLayer.hpp"
 #include "GlobalVariables.hpp"
@@ -42,8 +45,32 @@ uint16_t TPProtocol::parseMessage(TPMessage& tp_message, Message& message, uint1
             break;
         }
         case Application::LogMessage: {
-            auto logData = String<1024>(tp_message.data.data() + 1, length);
-            LOG_DEBUG << logData.c_str();
+            // auto logData = String<1024>(tp_message.data.data() + 2, length);
+            // uartGatekeeperTask->addToQueue(logData, uartGatekeeperTask->taskHandle);
+            etl::format_spec formatSpec;
+            String<64> serviceTypeStr("");
+            String<64> messageTypeStr("");
+            etl::to_string(message.serviceType, serviceTypeStr, formatSpec, false);
+            etl::to_string(message.messageType, messageTypeStr, formatSpec, false);
+
+            String<512> output("");
+            output.append("New TM[");
+            output.append(serviceTypeStr);
+            output.append(",");
+            output.append(messageTypeStr);
+            output.append("] message! ");
+
+            // Add data only for TM messages
+
+
+            String<256> dataStr("");
+
+            for (uint16_t i = 3; i < length; ++i) {
+                etl::to_string(tp_message.data[i], dataStr, formatSpec, true);
+                dataStr.append(" ");
+            }
+            output.append(dataStr.c_str());
+            uartGatekeeperTask->addToQueue(output, uartGatekeeperTask->taskHandle);
             break;
         }
         default:

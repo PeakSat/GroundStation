@@ -162,7 +162,7 @@ bool TCHandlingTask::resetUARTIfNeeded() {
                     Message default_message{};
                     auto status = CAN::TPProtocol::createCANTPMessage(response, nullptr, default_message, 1);
                     if (status != 1) {
-                        LOG_ERROR << "****[UART]****";
+                        LOG_ERROR << "****[UART] ERROR ****";
                     }
                 }
             }
