@@ -47,30 +47,57 @@ uint16_t TPProtocol::parseMessage(TPMessage& tp_message, Message& message, uint1
         case Application::LogMessage: {
             // auto logData = String<1024>(tp_message.data.data() + 2, length);
             // uartGatekeeperTask->addToQueue(logData, uartGatekeeperTask->taskHandle);
-            etl::format_spec formatSpec;
-            String<64> serviceTypeStr("");
-            String<64> messageTypeStr("");
-            etl::to_string(message.serviceType, serviceTypeStr, formatSpec, false);
-            etl::to_string(message.messageType, messageTypeStr, formatSpec, false);
+                String<512> output("");
+                uint8_t* dataPointer = tp_message.data.data();
+                output.append(&dataPointer[1],length);
+                if (length>500)
+                {
+                    __NOP();
+                }
+                // output.append("\n");
+                uartGatekeeperTask->addToQueue(output, uartGatekeeperTask->taskHandle);
 
-            String<512> output("");
-            output.append("New TM[");
-            output.append(serviceTypeStr);
-            output.append(",");
-            output.append(messageTypeStr);
-            output.append("] message! ");
-
-            // Add data only for TM messages
-
-
-            String<256> dataStr("");
-
-            for (uint16_t i = 3; i < length; ++i) {
-                etl::to_string(tp_message.data[i], dataStr, formatSpec, true);
-                dataStr.append(" ");
-            }
-            output.append(dataStr.c_str());
-            uartGatekeeperTask->addToQueue(output, uartGatekeeperTask->taskHandle);
+            // etl::format_spec formatSpec;
+            // String<64> serviceTypeStr("");
+            // String<64> messageTypeStr("");
+            // etl::to_string(tp_message.data._buffer[10], serviceTypeStr, formatSpec, false);
+            // etl::to_string(tp_message.data._buffer[11], messageTypeStr, formatSpec, false);
+            //
+            // String<512> output("");
+            // output.append("New TM[");
+            // output.append(serviceTypeStr);
+            // output.append(",");
+            // output.append(messageTypeStr);
+            // output.append("] message! ");
+            //
+            // // Add data only for TM messages
+            //
+            //
+            // String<512> dataStr("");
+            //     if (tp_message.data[8]>0)
+            //     {
+            //         tp_message.data[8]--;
+            //     }else
+            //     {
+            //         tp_message.data[7]--;
+            //         tp_message.data[8]=0xFF;
+            //     }
+            //     if (tp_message.data[8]>0)
+            //     {
+            //         tp_message.data[8]--;
+            //     }else
+            //     {
+            //         tp_message.data[7]--;
+            //         tp_message.data[8]=0xFF;
+            //     }
+            //
+            // for (uint16_t i = 3; i < length; ++i) {
+            //     etl::to_string(tp_message.data[i], dataStr, formatSpec, true);
+            //     dataStr.append(" ");
+            // }
+            // output.append(dataStr.c_str());
+            // output.append("\n");
+            // uartGatekeeperTask->addToQueue(output, uartGatekeeperTask->taskHandle);
             break;
         }
         default:

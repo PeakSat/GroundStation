@@ -2,6 +2,7 @@
 #include "ApplicationLayer.hpp"
 #include "CANGatekeeperTask.hpp"
 #include <TPProtocol.hpp>
+#include <UARTGatekeeperTask.hpp>
 
 #include "Logger.hpp"
 
@@ -45,6 +46,16 @@ uint16_t CANParserTask::handlePacket(const localPacketHandler& CANPacketHandler,
     tp_message.appendUint8(CANPacketHandler.MessageID);
     for (int i = 0; i < CANPacketHandler.PacketSize; i++) {
         tp_message.appendUint8(CANPacketHandler.Buffer[i]);
+    }
+    if (static_cast<CAN::Application::MessageIDs>(tp_message.data[0]) == CAN::Application::LogMessage)
+    {
+        String<512> output("");
+        uint8_t* dataPointer = const_cast<uint8_t*>(CANPacketHandler.Buffer);
+        output.append(&dataPointer[0],CANPacketHandler.PacketSize);
+
+        // output.append("\n");
+        uartGatekeeperTask->addToQueue(output, uartGatekeeperTask->taskHandle);
+        return 0;
     }
     tp_message.idInfo.sourceAddress = CAN::TTC;
     Message default_message{};
