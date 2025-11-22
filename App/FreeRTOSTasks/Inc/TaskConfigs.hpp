@@ -72,7 +72,7 @@ const BaseType_t ADCSTaskPriority = tskIDLE_PRIORITY + 1;
 const BaseType_t ADCSHousekeepingTaskPriority = tskIDLE_PRIORITY + 1;
 const BaseType_t EPSTaskPriority = tskIDLE_PRIORITY + 1;
 
-const uint16_t CANParserTaskStack = 7000;
+const uint16_t CANParserTaskStack = 10000;
 const uint16_t CANGatekeeperTaskStack = 7000;
 const uint16_t GNSSTaskStack = 6000;
 const uint16_t RF_RXTaskStack = 8000;
@@ -88,7 +88,7 @@ const uint16_t TCHandlingTaskStack = 8000;
 const uint16_t ParameterMonitoringTaskStack = 6000;
 const uint16_t TMHandlingTaskStack = 6000;
 const uint16_t TestTaskStack = 4000;
-const uint16_t UARTGatekeeperTaskStack = 10000;
+const uint16_t UARTGatekeeperTaskStack = 15000;
 const uint16_t TimeKeepingTaskStack = 5000;
 const uint16_t StateMachineTaskStack = 5000;
 const uint16_t EventActionHandlerTaskStack = 6000;

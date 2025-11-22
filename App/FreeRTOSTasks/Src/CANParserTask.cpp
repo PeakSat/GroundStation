@@ -49,7 +49,7 @@ uint16_t CANParserTask::handlePacket(const localPacketHandler& CANPacketHandler,
     }
     if (static_cast<CAN::Application::MessageIDs>(tp_message.data[0]) == CAN::Application::LogMessage)
     {
-        String<512> output("");
+        String<LOGGER_MAX_MESSAGE_SIZE> output("");
         uint8_t* dataPointer = const_cast<uint8_t*>(CANPacketHandler.Buffer);
         output.append(&dataPointer[0],CANPacketHandler.PacketSize);
 
